@@ -3,6 +3,8 @@
 #include "glog/logging.h"
 #include "glog/raw_logging.h"
 #include <set>
+#include "CircularList.h"
+#include "BundleFactory.h"
 
 #ifdef _DEBUG
 #include <ctime>
@@ -13,9 +15,9 @@ using namespace thp;
 
 LayerLRUCache::LayerLRUCache(unsigned int unCapacity) 
 {
-	//pthread_rwlock_init(&m_prwMutex, NULL);
+	pthread_rwlock_init(&m_prwMutex, NULL);
 
-	pthread_mutex_init(&m_ptMutex, NULL);
+	//pthread_mutex_init(&m_ptMutex, NULL);
 
 	m_lockReadTimes = 0;
 	m_lockWriteTimes = 0;
@@ -26,7 +28,16 @@ LayerLRUCache::LayerLRUCache(unsigned int unCapacity)
 	m_unUsedKBCount = 0;
 	m_unLruHeadBundleKBCount = 0;
 
+	m_pList = new CircularList;
+
 	unlock(false);
+}
+
+thp::LayerLRUCache::~LayerLRUCache()
+{
+	pthread_rwlock_destroy(&m_prwMutex);
+	delete m_pList;
+	//pthread_mutex_destroy(&m_ptMutex);
 }
 
 void LayerLRUCache::setCapacity(unsigned int unCapacity)
@@ -67,183 +78,107 @@ Bundle* LayerLRUCache::get(const TBundleNo& key)
 
 Bundle* LayerLRUCache::get_pri(const TBundleNo& key)
 {
+	lockForRead();
+
+	// 现在的时间复杂度 log2n
+	TbnoBdlMapIt it = m_mapKeyValue.find(key);
+	if( it == m_mapKeyValue.end() )
 	{
-		bool bLocked = lockForRead();
-		if(!bLocked)
-			return NULL;
+		unlock(true);
+		return NULL;
+	}
 
-		std::map<TBundleNo, std::list< std::pair<TBundleNo, Bundle*> >::iterator >::iterator it = m_mp.find(key);
+	Bundle* pRes = it->second;
 
-		//没有命中
-		if(it == m_mp.end())      
-		{
-			unlock(false);
-			lockForWrite();
-			return NULL;
-		}
+	pRes->lockForRead();
+	pRes->heating();
 
-		// 最近一次使用
-		std::list< std::pair<TBundleNo, Bundle*> >::iterator listIt = it->second;
-		if( listIt == m_listCache.begin() )
-		{
-			Bundle* pBundleRes = m_listCache.begin()->second;
-			pBundleRes->lockForRead();
+	unlock(true);
 
-			unlock(false);
+	return pRes;
+}
 
-			return pBundleRes;
-		}
+thp::Bundle* thp::LayerLRUCache::addAndGet(const TBundleNo& key, BundleFactory* pFactory)
+{
+	std::set<Bundle*> setRelease;
+	lockForWrite();
+	
+	// 其他线程可能已经写过
+	TbnoBdlMapIt it = m_mapKeyValue.find(key);
+	if( it != m_mapKeyValue.end() )
+	{
+		Bundle* pBundle = it->second;
+		
+		pBundle->heating();
+
+		pBundle->lockForRead();
 
 		unlock(true);
+
+		return pBundle;
 	}
 
-	bool bLocked = lockForWrite();
-	if( !bLocked )
-		return NULL;
+	Bundle* pNewBundle = pFactory->createBundle(key);
 
-	std::map<TBundleNo, std::list< std::pair<TBundleNo, Bundle*> >::iterator >::iterator it = m_mp.find(key);
-	std::list< std::pair<TBundleNo, Bundle*> >::iterator listIt = it->second;
-
-	// 命中节点	
-	std::pair<TBundleNo, Bundle*> pairNode;
-	pairNode.first  = key;
-	pairNode.second = listIt->second;
-
-	// 先删除命中的节点
-	m_listCache.erase( listIt );                
-
-	// 将命中的节点放到链表头部
-	m_listCache.push_front(pairNode);
-
-	m_mp[key] = m_listCache.begin();
-	
-	Bundle* pBundleRes = m_listCache.begin()->second;
-
-	unlock(false);
-
-	return pBundleRes;
-}
-
-void thp::LayerLRUCache::set(const TBundleNo& key, thp::Bundle* pBundle)
-{
-	__try
+	// 这种实现方式最后入栈的bundle过大可能会造成使用的内存使用大于lru的设定值
+	if( m_unUsedKBCount < m_unMaxKBCount )
 	{
-		set_pri(key, pBundle);
-	}
-	__except(EXCEPTION_EXECUTE_HANDLER)
-	{
-		;
-	}
-}
+		pNewBundle->cache();
 
-void LayerLRUCache::set_pri(const TBundleNo& key, Bundle* pBundle)
-{
-	std::set<Bundle*> setRelease;
-
-	bool bLocked = lockForWrite();
-	if( !bLocked )
-		return ;
-
-	std::map<TBundleNo, std::list< std::pair<TBundleNo, Bundle*> >::iterator >::iterator it = m_mp.find(key);
-
-	if(it == m_mp.end()) 
-	{
-		m_unUsedKBCount += pBundle->getMemKB();
-
-		// 栈满了
-		while(m_unUsedKBCount > m_unMaxKBCount)
-		{
-			if( 0 == m_listCache.size() )
-				break;
-
-			const std::pair<TBundleNo, Bundle*>& pairNode = m_listCache.back();
-
-			// 内部保证没有出现负值的情况
-			m_mp.erase( pairNode.first );
-
-			m_unUsedKBCount -= pairNode.second->getMemKB();
-
-			Bundle* pBl = m_listCache.back().second;
-
-			setRelease.insert(pBl);
-
-			// 出栈
-			m_listCache.pop_back();
-		}
-
-		std::pair<TBundleNo, Bundle*> pairNewNode(key, pBundle);
-		m_listCache.push_front( std::make_pair(key, pBundle) );
-		m_mp[key] = m_listCache.begin();
-	}// 没有命中
+		m_unUsedKBCount += pNewBundle->getMemKB();
+		m_mapKeyValue[key] = pNewBundle;
+		m_pList->push_front(pNewBundle);
+	}// 栈未满 将资源直接插入热段头
 	else
 	{
-		std::list< std::pair<TBundleNo, Bundle*> >::iterator listIt = m_mp[key];
+		// 资源出栈
+		Bundle* pBundle = (Bundle*)m_pList->tailData();
+		while( m_unUsedKBCount > m_unMaxKBCount )
+		{
+			while ( pBundle->getHeatDegree() > 2 )
+			{
+				pBundle->lockForWrite();
+				pBundle->setHeatDegree(0);
+				pBundle->unlock(false);
 
-		// 维护信息, 释放命中节点的资源 
-		m_unUsedKBCount -= listIt->second->getMemKB();
+				m_pList->moveHeadForward();
 
-		setRelease.insert(listIt->second);
+				pBundle = (Bundle*)m_pList->tailData();
+			}// 使用两个以上认为是热的
 
-		// 删除命中的节点
-		m_listCache.erase(listIt);
+			pBundle = (Bundle*)m_pList->pop_back();
+			m_unUsedKBCount -= pBundle->getMemKB();
 
-		// 维护信息
-		m_unUsedKBCount += pBundle->getMemKB();
+			setRelease.insert( pBundle );
+		}// 新资源未加入时保证内存未用满
+	
+		// 缓存资源 
+		pNewBundle->cache();
 
-		// 添加新节点
-		std::pair<TBundleNo, Bundle*> pairNode;
-		pairNode.first = key;
-		pairNode.second = pBundle;
+		// 添加资源到冷端
+		m_unUsedKBCount += pNewBundle->getMemKB();
+		m_mapKeyValue[key] = pNewBundle;
 
-		//将命中的节点放到链表头部
-		m_listCache.push_front(pairNode);   
-		m_mp[key] = m_listCache.begin();
-	}//命中
+		// map的资源总数 和循环链表中的资源总数相等的
+		int nCount = m_mapKeyValue.size();
 
-	unlock(false);
+		int nColdBegin = 0;
+		
+		// 最多有10个冷资源
+		if( nCount > 20 )
+			nColdBegin = 10;
+		else
+			nColdBegin = nCount >> 1; // <=> nCount/2
 
-	for (std::set<Bundle*>::iterator setit = setRelease.begin(); setit != setRelease.end(); ++setit)
-	{
-		Bundle* pDl = *setit;
-		pDl->lockForWrite();
-		delete pDl;
-		pDl = NULL;
-		// ? 析构了的对象的锁还要不要释放
-	}
-}
+		CircularList::TclNode* pColdHead = m_pList->tail();
+		for (int i=0;i<nColdBegin;++i)
+			pColdHead = pColdHead->pPrev;
 
-void thp::LayerLRUCache::push(const TBundleNo& key, thp::Bundle* pBundle)
-{
-	std::set<Bundle*> setRelease;
+		m_pList->insert(pColdHead, pNewBundle);
+	}// 栈满
 
-	std::map<TBundleNo, std::list< std::pair<TBundleNo, Bundle*> >::iterator >::iterator it = m_mp.find(key);
-
-	m_unUsedKBCount += pBundle->getMemKB();
-
-	// 栈满了
-	while(m_unUsedKBCount > m_unMaxKBCount)
-	{
-		if( 0 == m_listCache.size() )
-			break;
-
-		const std::pair<TBundleNo, Bundle*>& pairNode = m_listCache.back();
-
-		// 内部保证没有出现负值的情况
-		m_mp.erase( pairNode.first );
-
-		m_unUsedKBCount -= pairNode.second->getMemKB();
-
-		Bundle* pBl = m_listCache.back().second;
-
-		setRelease.insert(pBl);
-
-		// 出栈
-		m_listCache.pop_back();
-	}
-
-	std::pair<TBundleNo, Bundle*> pairNewNode(key, pBundle);
-	m_listCache.push_front( std::make_pair(key, pBundle) );
-	m_mp[key] = m_listCache.begin();
+	pNewBundle->heating();
+	pNewBundle->lockForRead();
 
 	unlock(false);
 
@@ -255,6 +190,8 @@ void thp::LayerLRUCache::push(const TBundleNo& key, thp::Bundle* pBundle)
 		pDl = NULL;
 		// ? 析构了的对象的锁还要不要释放
 	}
+
+	return pNewBundle;
 }
 
 #include <Windows.h>
@@ -262,8 +199,8 @@ void thp::LayerLRUCache::push(const TBundleNo& key, thp::Bundle* pBundle)
 bool thp::LayerLRUCache::lockForRead()
 {
 	RAW_LOG(INFO, "locking for read, wt %d, rd %d", m_lockWriteTimes, m_lockReadTimes);
-	if( 0 == pthread_mutex_lock(&m_ptMutex) )
-	//if( 0 == pthread_rwlock_tryrdlock(&m_prwMutex) )
+	//if( 0 == pthread_mutex_lock(&m_ptMutex) )
+	if( 0 == pthread_rwlock_tryrdlock(&m_prwMutex) )
 	{
 		InterlockedIncrement(&m_lockReadTimes);
 		RAW_LOG(INFO, "lock read success, wt %d, rd %d", m_lockWriteTimes, m_lockReadTimes);
@@ -280,8 +217,8 @@ bool thp::LayerLRUCache::lockForWrite()
 {
 	RAW_LOG(INFO, "locking for write,wt %d, rd %d", m_lockWriteTimes, m_lockReadTimes);
 
-	if( 0 == pthread_mutex_lock(&m_ptMutex) )
-	//if(0 == pthread_rwlock_wrlock(&m_prwMutex) )
+	//if( 0 == pthread_mutex_lock(&m_ptMutex) )
+	if(0 == pthread_rwlock_wrlock(&m_prwMutex) )
 	{
 		InterlockedIncrement(&m_lockWriteTimes);
 		RAW_LOG(INFO, "lock write success,wt %d, rd %d", m_lockWriteTimes, m_lockReadTimes);
@@ -297,8 +234,8 @@ bool thp::LayerLRUCache::lockForWrite()
 void thp::LayerLRUCache::unlock(bool bRead)
 {
 	RAW_LOG(INFO, "unlocking, rd %d , wt %d", m_lockReadTimes, m_lockWriteTimes);
-	if( 0 == pthread_mutex_unlock(&m_ptMutex) )
-	//if( 0 == pthread_rwlock_unlock(&m_prwMutex) )
+	//if( 0 == pthread_mutex_unlock(&m_ptMutex) )
+	if( 0 == pthread_rwlock_unlock(&m_prwMutex) )
 	{
 		if( bRead )
 		{
@@ -320,56 +257,5 @@ void thp::LayerLRUCache::unlock(bool bRead)
 	}
 }
 
-thp::LayerLRUCache::~LayerLRUCache()
-{
-	//pthread_rwlock_destroy(&m_prwMutex);
-	pthread_mutex_destroy(&m_ptMutex);
-}
-
-void LayerLRUCache::updateUsedCapacity()
-{
-	std::set<Bundle*> setRelease;
-
-	Bundle* pBdl = m_listCache.begin()->second;
-	m_unUsedKBCount = pBdl->getMemKB() - m_unLruHeadBundleKBCount;
-
-	// 栈满了
-	while(m_unUsedKBCount > m_unMaxKBCount)
-	{
-		const std::pair<TBundleNo, Bundle*>& pairNode = m_listCache.back();
-
-		// 内部保证没有出现负值的情况
-		m_mp.erase( pairNode.first );
-		
-		// 记录日志
-		//DLOG(INFO) << "LRU释放内存 bundleid:" << pairNode.first.unLv << "-" << pairNode.first.unBunldeID;
-
-		// 释放资源
-		//delete m_listCache.back().second;
-		setRelease.insert( m_listCache.back().second );
-
-		// 忘记
-		m_listCache.pop_back();
-
-		m_unUsedKBCount -= pairNode.second->getMemKB();
-	}
-
-	for (std::set<Bundle*>::iterator setit = setRelease.begin(); setit != setRelease.end(); ++setit)
-	{
-		Bundle* pDl = *setit;
-		pDl->lockForWrite();
-		delete pDl;
-		pDl = NULL;
-		// ? 析构了的对象的锁还要不要释放
-	}
-}
-
-void LayerLRUCache::saveUsedCapacityStatus()
-{
-	lockForWrite();
-	Bundle* pBdl = m_listCache.begin()->second;
-	m_unLruHeadBundleKBCount = pBdl->getMemKB();
-	unlock(false);
-}
 
 
