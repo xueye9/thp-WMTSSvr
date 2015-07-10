@@ -3,7 +3,9 @@
 #include <Windows.h>
 #include <list>
 
-#include "pthread/pthread.h"
+#include <QReadWriteLock>
+
+//#include "pthread/pthread.h"
 #include "ParamDef.h"
 #include "Bundle.h"
 #include "uthash/uthash.h"
@@ -65,7 +67,9 @@ private:
 	
 	// 必须使用互斥锁 使用读写锁会有问题
 	// 如下五个个成员变量的读写锁
-	pthread_rwlock_t m_prwMutex;
+	//pthread_rwlock_t m_prwMutex;
+	QReadWriteLock m_prwMutex;
+
 
 	//pthread_mutex_t m_ptMutex;
 
