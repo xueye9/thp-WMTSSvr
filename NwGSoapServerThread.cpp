@@ -5,8 +5,8 @@
 #include "WMTSServiceStub.h"
 #include "LoadConfigData.h"
 #include "WMTSRepository.h"
-//#include "glog/logging.h"
-//#include "glog/raw_logging.h"
+#include <QHostInfo>
+#include <QNetworkInterface>
 
 int  __gis__TestData(struct soap*, struct __gis__TestDataResponse &_param_1)
 {
@@ -72,14 +72,11 @@ bool NwGSoapServerThread::initServerStartParam()
 		return false;
 	}
 
+	std::string sAddress = _GetLocalIPAddress().toLocal8Bit();
+
 	std::cout << "Master socket:" << mbindSocket << std::endl;
-	std::cout << "Request accepts connection from IP:" 
-		<< (int)( (m_psoap->ip>>24)&0xFF ) << "."
-		<< (int)( (m_psoap->ip>>16)&0xFF ) << "."
-		<< (int)( (m_psoap->ip>>8)&0xFF ) <<"."
-		<< (int)(m_psoap->ip&0xFF);
-	//LOG(INFO) << "Port:" << m_psoap->port << std::endl;  // ?绑定后端口号没变化
-	std::cout << "bind to port:" << LoadConfigData::getInstance()->getPort() << std::endl;
+	std::cout << "Server IP:" << sAddress << std::endl;
+	std::cout << "Server Port:" << LoadConfigData::getInstance()->getPort() << std::endl;
 
 	// 其他的详细信息
 
@@ -109,14 +106,6 @@ void NwGSoapServerThread::run()
 			continue;
 		}
 
-		// 线程安全的写日志
-		//RAW_DLOG(INFO, "Request accepts connection from IP:%d.%d.%d.%d", 
-		//	(int)( (m_psoap->ip>>24)&0xFF ), 
-		//	(int)( (m_psoap->ip>>16)&0xFF ),
-		//	(int)( (m_psoap->ip>>8)&0xFF ),
-		//	(int)(m_psoap->ip&0xFF)
-		//	);
-
 		tsoap = soap_copy(m_psoap); // make a safe copy
 		if (!tsoap)
 		{
@@ -129,4 +118,42 @@ void NwGSoapServerThread::run()
 
 	QThreadPool::globalInstance()->waitForDone ();
 	QThreadPool::globalInstance()->releaseThread();
+}
+
+QString NwGSoapServerThread::_GetLocalIPAddress()
+{
+	QString vAddress;
+
+#ifdef _WIN32
+
+	QHostInfo vHostInfo = QHostInfo::fromName( QHostInfo::localHostName() );
+	QList<QHostAddress> vAddressList = vHostInfo.addresses();
+
+#else
+
+	QList<QHostAddress> vAddressList = QNetworkInterface::allAddresses();
+
+#endif
+
+	for(int i = 0; i < vAddressList.size(); i++)
+
+	{
+
+		if(!vAddressList.at(i).isNull() &&
+
+			vAddressList.at(i) != QHostAddress::LocalHost &&
+
+			vAddressList.at(i).protocol() ==  QAbstractSocket::IPv4Protocol)
+
+		{
+
+			vAddress = vAddressList.at(i).toString();
+
+			break;
+
+		}
+
+	}
+
+	return vAddress;
 }

@@ -249,3 +249,8 @@ const thp::TBundleID& thp::Bundle::getID() const
 	return m_tID.tID;
 }
 
+const char* thp::Bundle::getPath() const
+{
+	return m_szFilePath;
+}
+

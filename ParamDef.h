@@ -18,16 +18,16 @@
 
 //localhost:9092/WMTS?service=WMTS&request=GetTile&version=1.0.0&
 //layer=img&style=default&format=tiles&TileMatrixSet=c&TileMatrix=3&TileRow=2&TileCol=2
-#define WMTS_SERVICE		"service"
-#define WMTS_REQUEST		"request"
-#define WMTS_VERSION		"version"
-#define WMTS_LAYER			"layer"
-#define WMTS_LAYER_STYLE	"style"
-#define WMTS_TILE_FORMAT	"format"
-#define WMTS_TILEMATRIXSET	"tileMatrixSet"
-#define WMTS_TILEMATRIX		"TileMatrix"
-#define WMTS_TILEROW		"TileRow"
-#define WMTS_TILECOL		"TileCol"
+#define WMTS_SERVICE		"SERVICE"
+#define WMTS_REQUEST		"REQUEST"
+#define WMTS_VERSION		"VERSION"
+#define WMTS_LAYER			"LAYER"
+#define WMTS_LAYER_STYLE	"STYLE"
+#define WMTS_TILE_FORMAT	"FORMAT"
+#define WMTS_TILEMATRIXSET	"TILEMATRIXSET"
+#define WMTS_TILEMATRIX		"TILEMATRIX"
+#define WMTS_TILEROW		"TILEROW"
+#define WMTS_TILECOL		"TILECOL"
 
 #define WMTS_SERVICE_VALUE				"WMTS"
 

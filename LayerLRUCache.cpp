@@ -9,6 +9,10 @@
 #ifdef _DEBUG
 #include <ctime>
 #include <Windows.h>
+#endif// _DEBUG
+
+#ifdef _THP_TJ
+#include <QString>
 #endif
 
 using namespace thp;
@@ -35,12 +39,12 @@ LayerLRUCache::LayerLRUCache(unsigned int unCapacity)
 bool LayerLRUCache::_initLogWriter()
 {
 	// 获取写日志对象
-	m_pLogWriter = CLogThreadMgr::instance()->getLogWriter("LayerLRUCache.log");
+	m_pLogWriter = CLogThreadMgr::instance()->getLogWriter("LayerLRUCache.csv");
 
 	// 如果不存在，创建日志文件，加载日志配置
 	if (m_pLogWriter == NULL)
 	{
-		CLogAppender * pLogAppender = new CLogAppender("LayerLRUCache", "LayerLRUCache.log", "", "DebugLog"); 
+		CLogAppender * pLogAppender = new CLogAppender("LayerLRUCache", "LayerLRUCache.csv", "", "DebugLog"); 
 
 		// 获取写日志对象
 		m_pLogWriter = CLogThreadMgr::instance()->createLogWriter(pLogAppender);
@@ -53,15 +57,11 @@ thp::LayerLRUCache::~LayerLRUCache()
 	// 释放hash表资源
 	lockForWrite();
 
-	m_pLogWriter->debugLog("LRU 正在释放资源...");
-	//LOG(INFO) << "LRU 正在释放资源...";
+	std::cout << "LRU 正在释放资源...";
 
 	unlock(false);
 
-	//pthread_rwlock_destroy(&m_prwMutex);
-
-	m_pLogWriter->debugLog("LRU 完成释放资源...");
-	//LOG(INFO) << "LRU 完成释放资源";
+	std::cout << "LRU 完成释放资源";
 }
 
 
@@ -110,6 +110,12 @@ int thp::LayerLRUCache::add(std::tr1::shared_ptr<Bundle> sp)
 	if(m_unUsedKBCount < m_unMaxKBCount)
 	{
 		m_listHotColdResources.push_front(sp);
+
+#ifdef _THP_TJ
+		unsigned int nbKb = sp->getMaxKB();
+		QString qsInfo = QString( "%0,%1,%2" )/*.arg( GB("LRU") ).arg( GB(sp->getPath()) )*/.arg( nbKb );
+		m_pLogWriter->debugLog(qsInfo);
+#endif
 		
 		unlock(false);
 		return 0;
@@ -138,6 +144,12 @@ int thp::LayerLRUCache::add(std::tr1::shared_ptr<Bundle> sp)
 	}
 
 	m_unUsedKBCount += sp->getMaxKB();
+
+#ifdef _THP_TJ
+	// CLASS, MAX, CURRENT, BUNDLE个数
+	QString qsInfo = QString( GB("%0,%1,%2,%3") ).arg( GB("LRUSTATUS") ).arg( m_unMaxKBCount ).arg( m_unUsedKBCount ).arg( m_listHotColdResources.size() );
+	m_pLogWriter->debugLog(qsInfo);
+#endif
 
 	unlock(false);
 	return 0;

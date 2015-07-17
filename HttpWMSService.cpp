@@ -46,103 +46,62 @@ int HttpWMSService::dwmGetMap(struct soap *soap, char* path)
 
 	try
 	{
-		QUrl urlSpe = QUrl::fromEncoded(path);  
+		QString qs( GB(path) );
+		QUrl urlSpe( qs.toUpper() );// = QUrl::fromEncoded(path);  
 
 		QString sTemp = urlSpe.queryItemValue(WMTS_SERVICE);
 		if( 0 != sTemp.compare("wmts", Qt::CaseInsensitive) )
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 
 		sTemp = urlSpe.queryItemValue( WMTS_REQUEST );
 
-		// 处理请求capatibility
-		//if( 0 != sTemp.compare(WMTS_REQUEST_VL_CAPABILITIES, Qt::CaseInsensitive) )
-		//{
-		//	QString  strMessage ="请求格式缺少必填选项";
-		//	return _sendExceptionMessage(soap, strMessage, ""); 
-		//}
+		//处理请求capatibility
+		if( 0 == sTemp.compare(WMTS_REQUEST_VL_CAPABILITIES, Qt::CaseInsensitive) )
+			return _sendCapabilities(soap);
 
 		if( 0 != sTemp.compare(WMTS_REQUEST_VL_GETTILE), Qt::CaseInsensitive)
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 
 		sTemp = urlSpe.queryItemValue( WMTS_VERSION );
-		if (0 != sTemp.compare(WMTS_VERSION_VL))
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+		if( sTemp.isEmpty() )
+			return _sendCapabilities(soap);
 
 		sTemp = urlSpe.queryItemValue(WMTS_LAYER);
 		if( sTemp.isEmpty() )
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 		std::string stdstrLayr = sTemp.toLocal8Bit();
 
 		// 未使用
 		sTemp = urlSpe.queryItemValue(WMTS_LAYER_STYLE);
 		if( sTemp.isEmpty() )
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 
 		// PNG
 		sTemp = urlSpe.queryItemValue(WMTS_TILE_FORMAT);
 		if( sTemp.isEmpty() )
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 
 		// 未使用,内部算法应该是只有google的切片方案
 		sTemp = urlSpe.queryItemValue(WMTS_TILEMATRIXSET);
 		if( sTemp.isEmpty() )
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 
 		// 等级
 		sTemp = urlSpe.queryItemValue(WMTS_TILEMATRIX);
 		if( sTemp.isEmpty() )
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 		int nlv = sTemp.toInt();
 
 		// 行号
 		sTemp = urlSpe.queryItemValue(WMTS_TILEROW);
 		if( sTemp.isEmpty() )
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			m_pLogWriter->errorLog(strMessage);
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 		int nRow = sTemp.toInt();
 
 		// 列号
 		sTemp = urlSpe.queryItemValue(WMTS_TILECOL);
 		if( sTemp.isEmpty() )
-		{
-			QString  strMessage = GB("请求格式缺少必填选项");
-			return _sendExceptionMessage(soap, strMessage, ""); 
-		}
+			return _sendCapabilities(soap);
 		int nCol = sTemp.toInt();
 
 		// 从服务程序获取tile
@@ -163,7 +122,7 @@ int HttpWMSService::dwmGetMap(struct soap *soap, char* path)
 #ifdef _DEBUG
 			tStart = clock();
 #endif
-			int nRes = _sendData(soap, qAr, "");
+			int nRes = _sendData(soap, qAr, "image/png");
 
 #ifdef _DEBUG
 			tEnd = clock();
@@ -189,12 +148,26 @@ int HttpWMSService::dwmGetMap(struct soap *soap, char* path)
 	}
 }
 
-int HttpWMSService::_sendData(struct soap *soap,  QByteArray &baMapData, const QString &strformat)
+int HttpWMSService::_sendCapabilities(struct soap *soap)
+{
+	std::string sPath = g_pWMTSDataCache->getCapabilities();
+	QFile qfile( GB( sPath.c_str() ) );
+	qfile.open(QIODevice::ReadOnly | QIODevice::Text);
+	QByteArray qAr = qfile.readAll();
+	qfile.close();
+	return _sendData(soap, qAr, "text/xml");
+}
+
+int HttpWMSService::_sendData(struct soap *soap,  QByteArray &baMapData, const char* szformat)
 {  
 	soap->bRequestSucess = true;
 
 	// 5.发送GisData
-	soap->http_content = "image/png" ;
+	//soap->http_content = "image/png" ;
+	//std::string strFormat = (const char*)strformat.toLocal8Bit();
+	soap->http_content = szformat;
+	//soap->http_content = (const char*)strformat.toLocal8Bit();
+
 	if (soap_response(soap, SOAP_FILE)) /* OK HTTP response header */
 	{ 
 		soap_end_send(soap); 
@@ -241,7 +214,6 @@ int  HttpWMSService::_sendExceptionMessage(struct soap *soap, const QString  & s
 	QString strxml = doc.toString();
 	strxml = strxml.remove("<!DOCTYPE MyML>\n");
 	
-	QString strformat = "text/xml";
 	QByteArray byaException = strxml.toUtf8 ();
-	return _sendData(soap, byaException , strformat);
+	return _sendData(soap, byaException , "text/xml");
 }

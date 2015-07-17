@@ -30,7 +30,9 @@ private:
 	///发送图片数据
 	/// @param baMapData	[in]	图片数据
 	/// @param strformat	[in]	图片格式
-	 int _sendData(struct soap *soap, QByteArray &baMapData, const QString &strformat);
+	 int _sendData(struct soap *soap, QByteArray &baMapData, const char* szformat);
+
+	 int _sendCapabilities(struct soap *soap);
 
 	///打包异常消息
 	/// @param strMessage	[in]	错误消息

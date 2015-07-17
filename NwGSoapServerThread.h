@@ -29,7 +29,7 @@ public:
 protected:
 	// QThread重载函数
 	virtual void run();
-
+	QString _GetLocalIPAddress();
 private:
 	volatile bool            m_bExit;              // 退出标志
 	QWaitCondition           m_waitCondition;

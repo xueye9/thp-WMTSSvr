@@ -65,6 +65,8 @@ public:
 	// »ñÈ¡BundleµÄ±àºÅ
 	const TBundleID& getID() const;
 
+	const char* getPath() const;
+
 #ifdef _DEBUG
 	void check();
 #endif
