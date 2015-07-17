@@ -74,12 +74,12 @@ thp::WMTSLayer::WMTSLayer()
 bool WMTSLayer::_initLogWriter()
 {
 	// 获取写日志对象
-	m_pLogWriter = CLogThreadMgr::instance()->getLogWriter("WMTSLayer.log");
+	m_pLogWriter = CLogThreadMgr::instance()->getLogWriter("WMTSLayer.csv");
 
 	// 如果不存在，创建日志文件，加载日志配置
 	if (m_pLogWriter == NULL)
 	{
-		CLogAppender * pLogAppender = new CLogAppender("WMTSLayer", "WMTSLayer.log", "", "DebugLog"); 
+		CLogAppender * pLogAppender = new CLogAppender("WMTSLayer", "WMTSLayer.csv", "", "DebugLog"); 
 
 		// 获取写日志对象
 		m_pLogWriter = CLogThreadMgr::instance()->createLogWriter(pLogAppender);
@@ -117,28 +117,39 @@ thp::WMTSLevel* thp::WMTSLayer::getLevel(int nLvl)
 
 unsigned int thp::WMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& arTile, int& nDetail)
 {
+#ifdef _THP_TJ
+	InterlockedIncrement( (LONG*)(&m_nCount) );
+#endif// _THP_TJ
+
 	if( nLvl > THP_MAX_LEVEL)
 	{
-		// log
+		QString qsInfo = QString( GB("%0,%1,%2,%3,大于最大等级") ).arg( GB("info") ).arg(nLvl).arg(nRow).arg(nCol);
+		m_pLogWriter->debugLog(qsInfo);
 		return 0;
 	}// 超出定义最大范围
 
 	if( nRow < 0 || nRow > (1 << (nLvl-1)) )
 	{
-		// log
+		QString qsInfo = QString( GB("%0,%1,%2,%3,参数越界") ).arg( GB("info") ).arg(nLvl).arg(nRow).arg(nCol);
+		m_pLogWriter->debugLog(qsInfo);
 		return 0;
 	}// 超出范围定义的瓦片行数
 
 	if( nCol < 0 || nCol > (1 << nLvl) )
 	{
-		// log
+		QString qsInfo = QString( GB("%0,%1,%2,%3,参数越界") ).arg( GB("info") ).arg(nLvl).arg(nRow).arg(nCol);
+		m_pLogWriter->debugLog(qsInfo);
 		return 0;
 	}// 超出瓦片列数
 	
 	// 没有对应的等级
 	WMTSLevel* pLv = m_pLvl[nLvl];
 	if( NULL == pLv )
+	{
+		QString qsInfo = QString( GB("%0,%1,%2,%3,没有对应等级") ).arg( GB("info") ).arg(nLvl).arg(nRow).arg(nCol);
+		m_pLogWriter->debugLog(qsInfo);
 		return 0;
+	}
 
 	TBundleIDex tbnNo;
 	_calcBundleNo(nLvl, nRow, nCol, tbnNo);
@@ -155,10 +166,13 @@ unsigned int thp::WMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& a
 	{
 		// bundle 不存在
 		if( !pLv->exist(tbnNo) )
+		{
+			QString qsInfo = QString( GB("%0,%1,%2,%3,没有对应bundle") ).arg( GB("info") ).arg(nLvl).arg(nRow).arg(nCol);
+			m_pLogWriter->debugLog(qsInfo);
 			return 0;
+		}
 
 		{
-			//pthread_mutex_lock(&m_pRecordsMutex);
 			QMutexLocker locker(&m_pRecordsMutex);
 
 			HASH_FIND(hh, m_pBundleRecords, &(tbnNo.tID), sizeof(TBundleID), pRecord);
@@ -171,9 +185,17 @@ unsigned int thp::WMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& a
 				pRecord->nBundleCol = tbnNo.nBundleCol;
 
 				HASH_ADD(hh, m_pBundleRecords, tID, sizeof(TBundleID), pRecord);
-			}
 
-			//pthread_mutex_unlock(&m_pRecordsMutex);
+#ifdef _THP_TJ
+				// 记录访问内存过bundle的文件大小
+				spBundle = pRecord->loadBundle(pLv);
+				unsigned int nbKb = spBundle->getMaxKB();
+
+				QString qsInfo = QString( GB("%0,%1,%2") ).arg( GB("FILE") ).arg( spBundle->getPath() ).arg( nbKb );
+				m_pLogWriter->debugLog(qsInfo);
+#endif// _THP_TJ
+
+			}
 		}
 	}// 加载bundle
 

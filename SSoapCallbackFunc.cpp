@@ -1,4 +1,4 @@
-#include "StdAfx.h"
+ï»¿#include "StdAfx.h"
 #include "SSoapCallbackFunc.h"
 #include "HttpWMSService.h"
 #include "stdsoap2.h"
@@ -45,16 +45,10 @@ int SendFileData(struct soap *soap, const char *strFilePath, const char *type)
 
 int http_get_handler(struct soap *soap)
 {
-	//WMSÇëÇó´¦Àí
+	//WMSè¯·æ±‚å¤„ç†
 	QString strHttpPath = soap->path;	
-	if(strHttpPath.contains("SERVICE=WMTS&", Qt::CaseInsensitive))
+	if(strHttpPath.contains("WMTS?", Qt::CaseInsensitive))
 	{
-		if (strHttpPath.contains("SERVICE=WMTS", Qt::CaseInsensitive) && 
-			strHttpPath.contains("REQUEST=GETCAPABILITIES",Qt::CaseInsensitive))
-		{
-		}
-
-
 		HttpWMSService httpWMSService;
 		return   httpWMSService.dwmGetMap(soap, soap->path);
 	}
@@ -121,7 +115,7 @@ static const char * http_error(struct soap *soap, int status)
 	return msg;
 }
 
-// httpµÄheader£¬ºÍgsoapÊµÏÖÏàÍ¬£¬µ«ÊÇÌí¼ÓÁËAccess-Control-Allow-Origin:*ÊôÐÔ¡£
+// httpçš„headerï¼Œå’Œgsoapå®žçŽ°ç›¸åŒï¼Œä½†æ˜¯æ·»åŠ äº†Access-Control-Allow-Origin:*å±žæ€§ã€‚
 int http_set_response(struct soap *soap, int status, size_t count)
 { 
 	register int err;
@@ -216,7 +210,7 @@ int http_set_response(struct soap *soap, int status, size_t count)
 //
 //int TGetHandler::operator()(struct soap*)
 //{
-//	//WMSÇëÇó´¦Àí
+//	//WMSè¯·æ±‚å¤„ç†
 //	QString strHttpPath = soap->path;	
 //	if(strHttpPath.contains("SERVICE=WMTS&", Qt::CaseInsensitive))
 //	{

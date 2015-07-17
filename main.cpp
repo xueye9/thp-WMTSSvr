@@ -4,6 +4,7 @@
 #include "WMTSRepository.h"
 #include <ctime>
 #include <iostream>
+#include <algorithm>
 
 // x64 只有这一个 
 //#pragma comment(lib, "pthreadVC2.lib")
@@ -17,7 +18,7 @@ thp::WMTSRepository* g_pWMTSDataCache = new thp::WMTSRepository;
 int main(int argc, char* argv[])
 {
 	// 通过命令行参数获取配置信息
-	QString sConfig( ".\\server.ini" );
+	QString sConfig( ".\\data\\wmts_conf.ini" );
 
 	LoadConfigData::getInstance()->initConfigData( sConfig );
 
@@ -54,25 +55,20 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	// 预装载数据
-	//QString qsPreLoadLayerName = LoadConfigData::getInstance()->getPreLoadLayerName();
-	//std::string strPreLoadLayerName = (const char*)qsPreLoadLayerName.toLocal8Bit();
-
-	//if ( !qsPreLoadLayerName.isEmpty() )
-	//{
-	//	int i = LoadConfigData::getInstance()->getBeginLevel();
-	//	int nEndLv = LoadConfigData::getInstance()->getEndLevel();
-	//	for(; i <= nEndLv; ++i)
-	//	{
-	//		if( 0 != g_pWMTSDataCache->loadData(strPreLoadLayerName, i) )
-	//			break;
-	//	}
-	//}
-	//
-
 	NwGSoapServerThread td;
 	td.initServerStartParam();
 	td.startGSoapServer();
+
+	// 记录服务启动时间
+	time_t ttNow = time(NULL);
+	tm* tNow = localtime(&ttNow);
+	printf("服务启动时间: %d-%02d-%02d %02d:%02d:%02d\n",
+		tNow->tm_year + 1900,
+		tNow->tm_mon + 1,
+		tNow->tm_mday,
+		tNow->tm_hour,
+		tNow->tm_min,
+		tNow->tm_sec);
 
 	clock_t t1 = clock();
 	clock_t tSpend = (t1 - t0)/CLOCKS_PER_SEC;
@@ -86,15 +82,29 @@ int main(int argc, char* argv[])
 	
 	td.start();
 
+	std::string sInput("");
 	while(1)
 	{
 		int i = 0;
-		std::cin >> i;
-		if(1 == i)
+		std::cin >> sInput;
+		std::transform(sInput.begin(), sInput.end(), sInput.begin(), ::tolower);  
+
+		if(0 == sInput.compare("stop") )
 		{
 			td.stopGSoapServer();
-		//	Sleep(10000);
+			
 			break;
 		}
 	}
+
+	// 记录服务关闭时间
+	ttNow = time(NULL);
+	tNow = localtime(&ttNow);
+	printf("服务关闭时间: %d-%02d-%02d %02d:%02d:%02d\n",
+		tNow->tm_year + 1900,
+		tNow->tm_mon + 1,
+		tNow->tm_mday,
+		tNow->tm_hour,
+		tNow->tm_min,
+		tNow->tm_sec);
 } 

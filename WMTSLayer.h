@@ -20,9 +20,12 @@
 #include "bdi/bdiapi.h"
 #include "BundleFactory.h"
 #include "uthash/uthash.h"
-//#include "pthread/pthread.h"
 #include <QMutex>
 #include <QReadWriteLock>
+
+#ifdef _THP_TJ
+#include <Windows.h>
+#endif// _THP_TJ
 
 class CLogWriter;
 namespace thp
@@ -38,9 +41,7 @@ namespace thp
 		std::tr1::weak_ptr<Bundle> wpBundle;
 
 		// 资源读写索
-		//pthread_rwlock_t rwLocker;
 		QReadWriteLock rwLocker;
-
 
 		// hash表句柄
 		UT_hash_handle hh;
@@ -125,6 +126,17 @@ namespace thp
 
 		// 日志读写器
 		CLogWriter *			m_pLogWriter;
+
+#ifdef _THP_TJ
+		// 总访问次数
+		LONG			m_nCount;
+
+		// 有效访问次数
+		LONG			m_nENum;
+
+		// 从内存获取的次数
+		LONG			m_nMNum;
+#endif// _THP_TJ
 	};
 }
 

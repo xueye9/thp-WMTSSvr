@@ -5,6 +5,7 @@
 #include "Tile.h"
 #include "WMTSLevel.h"
 #include <iostream>
+#include <algorithm>
 #include <CLogThreadMgr.h>
 
 #pragma warning(once:4996)
@@ -126,6 +127,7 @@ int WMTSRepository::_initByDir()
 			sLayerName.erase(nLen-4);
 			
 			// ³õÊ¼»¯Í¼²ã
+			std::transform(sLayerName.begin(), sLayerName.end(), sLayerName.begin(), toupper);
 			if( _initLayer(sLayerName.c_str(), sFileFullPath.c_str()) )
 				++nLayerCount;
 		}
@@ -246,6 +248,15 @@ void thp::WMTSRepository::setMemStrategy(int nMemStrategy)
 int thp::WMTSRepository::getMemStrategy() const
 {
 	return m_nMemStrategy;
+}
+
+std::string thp::WMTSRepository::getCapabilities()
+{
+	std::string sPath(m_szPath);
+	sPath.append(WMTS_REQUEST_VL_CAPABILITIES);
+	sPath.append(".xml");
+
+	return sPath;
 }
 
 

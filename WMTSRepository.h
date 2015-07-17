@@ -112,6 +112,9 @@ namespace thp
 		// 指定图层点的lru满了就不再装在了 
 		int loadData(const std::string& strLayer, int nLvl);
 
+		// 获取Capabilities路径
+		std::string getCapabilities();
+
 	private:
 		int _initByDir();
 		bool _initByConfig();
