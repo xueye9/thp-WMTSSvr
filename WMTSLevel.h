@@ -1,4 +1,3 @@
-
 #ifndef WMTSLEVEL_H__
 #define WMTSLEVEL_H__
 #include "ParamDef.h"
@@ -19,7 +18,7 @@ class WMTSLevel
 {
 public:
 	WMTSLevel(int nLv);
-	~WMTSLevel();
+	virtual ~WMTSLevel();
 
 	int level();
 
@@ -32,7 +31,8 @@ public:
 	bool setPath(const char* pszPath);
 
 	void setBdi(int nSize, unsigned char* szbdi);
-private:
+
+protected:
 	// 对应的目录
 	char    m_szPath[THP_MAX_PATH];	
 

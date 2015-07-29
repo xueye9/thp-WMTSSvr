@@ -14,36 +14,10 @@ WMTSLevel::WMTSLevel(int nLv)
 {
 	m_nLvl = nLv;
 
-	// 检测参数异常
-	//m_nBundleRowCount = 1;
-	//m_nBundleColCount = 1;
-	//if( nLv > 7)
-	//{
-	//	// 8级之前的等级只有一个 bundle(一行一列)
-	//	m_nBundleRowCount = 1 << (nLv - 8); 
-	//	m_nBundleColCount = 1 << (nLv - 7);;
-	//}
-
 	memset(m_szPath, 0, THP_MAX_PATH);
 
 	m_pszBit = NULL;
 }
-//
-//bool WMTSLevel::_initLogWriter()
-//{
-//	// 获取写日志对象
-//	m_pLogWriter = CLogThreadMgr::instance()->getLogWriter("WMTSLevel.log");
-//
-//	// 如果不存在，创建日志文件，加载日志配置
-//	if (m_pLogWriter == NULL)
-//	{
-//		CLogAppender * pLogAppender = new CLogAppender("WMTSLevel", "WMTSLevel.log", "", "General"); 
-//
-//		// 获取写日志对象
-//		m_pLogWriter = CLogThreadMgr::instance()->createLogWriter(pLogAppender);
-//	}
-//	return true; 
-//}
 
 WMTSLevel::~WMTSLevel()
 {
@@ -84,6 +58,8 @@ std::tr1::shared_ptr<Bundle> thp::WMTSLevel::getBundle(const TBundleIDex& tbno)
 
 	int nXR = 128 * tbno.nBundleRow;
 	int nXC = 128 * tbno.nBundleCol;
+
+	// todo : 添加适应hdfs的访问代码
 
 	sprintf(szBundleFile, "%sR%04xC%04x.bundle", m_szPath, nXR, nXC);
 
