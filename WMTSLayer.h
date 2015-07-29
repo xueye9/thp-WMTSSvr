@@ -13,9 +13,7 @@
 #define THP_WMTS_H__
 
 #include <memory>
-
 #include <QByteArray>
-
 #include "ParamDef.h"
 #include "bdi/bdiapi.h"
 #include "BundleFactory.h"
@@ -57,7 +55,7 @@ namespace thp
 	{
 	public:
 		/**< 获取tile策略 */
-		enum GetTileStrategy 
+		enum MemStrategy 
 		{
 			/**< 直接IO不进行缓存 */
 			GTS_IO = 0,
@@ -68,7 +66,7 @@ namespace thp
 
 	public:
 		WMTSLayer();
-		~WMTSLayer();
+		virtual ~WMTSLayer();
 
 		// 获取响应的等级
 		WMTSLevel* getLevel(int nLvl);
@@ -83,18 +81,19 @@ namespace thp
 		* @return 	 const Tile*
 		* @todo 	
 		*/
-		unsigned int getTile(int nLvl, int nRow, int nCol, QByteArray& arTile, int& nDetail);
+		virtual unsigned int getTile(int nLvl, int nRow, int nCol, QByteArray& arTile, int& nDetail) = 0;
 
 		// 设置缓存上限
 		void setCacheMbSize(unsigned int nMemByMB);
 
-		void setGetTileStrategy(GetTileStrategy eGTS);
-		GetTileStrategy getGetTileStrategy() const;
+		// 内存管理策略
+		void setMemStrategy(MemStrategy eGTS);
+		MemStrategy getMemStrategy() const;
 
 		// 装在数据,测试使用
 		int loadData(int nLvl);
 
-	private:
+	protected:
 		// 计算指定等级的bundle编号
 		void _calcBundleNo(int nLvl, int nRow, int nCol, TBundleIDex& tNo);
 
@@ -103,7 +102,7 @@ namespace thp
 
 		bool _initLogWriter();
 
-	private:
+	protected:
 		int						nID;
 
 		// 定义图层范围以方便信息的刷新 非必需 实现一优化服务开启速度
@@ -122,7 +121,7 @@ namespace thp
 		QMutex						m_pRecordsMutex;
 
 		// Bundle装在策略 
-		GetTileStrategy			m_eGTS;
+		MemStrategy			m_eGTS;
 
 		// 日志读写器
 		CLogWriter *			m_pLogWriter;
