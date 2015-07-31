@@ -5,6 +5,7 @@
 #include "Bundle.h"
 #include "BundleReader.h"
 #include "bdi/bdiapi.h"
+#include "WMTSFactory.h"
 
 #pragma warning(once:4996)
 
@@ -63,7 +64,8 @@ std::tr1::shared_ptr<Bundle> thp::WMTSLevel::getBundle(const TBundleIDex& tbno)
 
 	sprintf(szBundleFile, "%sR%04xC%04x.bundle", m_szPath, nXR, nXC);
 
-	std::tr1::shared_ptr<Bundle> sp(new Bundle(tbno));
+	//std::tr1::shared_ptr<Bundle> sp(new Bundle(tbno));
+	std::tr1::shared_ptr<Bundle> sp( WMTSFactory::Instance()->createBundle(tbno) );
 	sp->open( szBundleFile );
 
 	return sp;

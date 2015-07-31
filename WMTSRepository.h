@@ -1,11 +1,11 @@
-/*!
+ï»¿/*!
  * \file WMTS.h
  * \author Xuebingbing
- * \brief wmtsÊı¾İ²Ö¿â
+ * \brief wmts æ•°æ®ä»“åº“
  *
  * TODO: long description
- * \date ÁùÔÂ 2015
- * \copyright	Copyright (c) 2015, ±±¾©¹ú¿ÆºãÍ¨µçÆø×Ô¶¯»¯¿Æ¼¼ÓĞÏŞ¹«Ë¾\n
+ * \date å…­æœˆ 2015
+ * \copyright	Copyright (c) 2015, åŒ—äº¬å›½ç§‘æ’é€šç”µæ°”è‡ªåŠ¨åŒ–ç§‘æŠ€æœ‰é™å…¬å¸\n
 	All rights reserved.
  */
 
@@ -24,119 +24,78 @@ namespace thp
 	class Tile;
 	class WMTSLayer;
 
-	// ¹şÏ£±í½á¹¹¶¨Òå
+	// å“ˆå¸Œè¡¨ç»“æ„å®šä¹‰
 	struct TLayerHashTableNode
 	{
-		// Í¼²ãÃû
+		// å›¾å±‚å
 		char szName[THP_WMTS_MAX_LAYERLEN];
 
-		// Í¼²ã¶ÔÏóÖ¸Õë
+		// å›¾å±‚å¯¹è±¡æŒ‡é’ˆ
 		thp::WMTSLayer* pLayer;
 
-		// hash ±í¾ä±ú
+		// hash è¡¨å¥æŸ„
 		UT_hash_handle hh;
 	};
 
 	/*!
 	 * \class WMTS
 	 *
-	 * \brief WMTSÍßÆ¬Êı¾İ²Ö¿â
+	 * \brief WMTSç“¦ç‰‡æ•°æ®ä»“åº“
 	 *
 	 * \author Baldwin
-	 * \date ÁùÔÂ 2015
+	 * \date å…­æœˆ 2015
 	 */
 	class WMTSRepository
 	{
 	public:
 		WMTSRepository();
-		~WMTSRepository();
+		virtual ~WMTSRepository();
 
-		// eg: .\Layers\_alllayers\L18\  ±ØĞèÎ²'\'
 		/**
-		* @brief 	 setPath ÉèÖÃ·şÎñÄ¿Â¼
-		* @details	 eg: .\Layers\_alllayers\L18\, Ä¿Â¼Ä©Î²±ØĞëÓĞ'\'
-		* @param[in] const char * szPath ·şÎñÄ¿Â¼£¬Í¼²ã×éËùÔÚµÄÄ¿Â¼
-		* @return 	 bool ÉèÖÃ³É¹¦·Å»Ø true
-		* @todo 	Í¼²ã×éÏÂÓĞÓÃ Ğ¡¹¤¾ßÉú³ÉµÄ [Í¼²ãÃû].bdi ÎÄ¼ş
-		Ã»ÓĞbdiÎÄ¼şÊÓÎªÃ»ÓĞÍ¼²ã
-		*/
-		bool setPath(const char* szPath);
-		
-		/**
-		* @brief 	 init ³õÊ¼»¯·şÎñ
+		* @brief 	 init åˆå§‹åŒ–æœåŠ¡
 		* @details	 thp::WMTS::init
 		* @param[in] int nMode
-			0x0001--ËÑË÷·şÎñÄ¿Â¼bdiÎÄ¼ş·½Ê½³õÊ¼»¯
-			0x0002--Ê¹ÓÃÅäÖÃÎÄ¼ş·½Ê½³õÊ¼»¯,Î´ÊµÏÖ
-		* @return 	 bool ³õÊ¼»¯³É¹¦·µ»Øtrue
+			0x0001--æœç´¢æœåŠ¡ç›®å½•bdiæ–‡ä»¶æ–¹å¼åˆå§‹åŒ–
+			0x0002--ä½¿ç”¨é…ç½®æ–‡ä»¶æ–¹å¼åˆå§‹åŒ–,æœªå®ç°
+		* @return 	 bool åˆå§‹åŒ–æˆåŠŸè¿”å›true
 		* @todo 	
 		*/
-		bool init(int nMode);
+		virtual bool init(int nMode) = 0;
 
 		/**
-		* @brief 	 getTile	»ñÈ¡Ö¸¶¨ĞÅÏ¢µÄÍßÆ¬
+		* @brief 	 getTile	è·å–æŒ‡å®šä¿¡æ¯çš„ç“¦ç‰‡
 		* @details	 thp::WMTS::getTile
-		* @param[in] std::string & strLayer	ÍßÆ¬ËùÔÚÍ¼²ã
-		* @param[in] int nLvl	ÍßÆ¬µÈ¼¶
-		* @param[in] int nRow	ÍßÆ¬ĞĞºÅ
-		* @param[in] int nCol	ÍßÆ¬ÁĞºÅ
-		* @param[in] Tile * pTile  »ñÈ¡µ½µÄÍßÆ¬£¬Ó¦¸ÃÓÃÖ¸ÕëÖ¸Õë°ü×°
-			ÏÖÔÚµÄÕâÖÖÊ¹ÓÃ·½Ê½ÔÚlru¹ıĞ¡£¬Í¬Ê±·şÎñÒ»´ÎÇëÇóµÄtile¹ı¶àÊ±¿ÉÄÜÔì³ÉÒ°Ö¸Õë
-		* @return 	 int ¶Ô·µ»ØÖµ¿ÉÒÔ×öÏêÏ¸µÄĞÅÏ¢¶¨ÖÆÄ¿Ç°ÖµÈçÏÂ
-			0	³É¹¦
-			1	Ê§°Ü
-		* @todo 	ÆúÓÃ
+		* @param[in] std::string & strLayer	ç“¦ç‰‡æ‰€åœ¨å›¾å±‚
+		* @param[in] int nLvl	ç“¦ç‰‡ç­‰çº§
+		* @param[in] int nRow	ç“¦ç‰‡è¡Œå·
+		* @param[in] int nCol	ç“¦ç‰‡åˆ—å·
+		* @param[in] Tile * pTile  è·å–åˆ°çš„ç“¦ç‰‡ï¼Œåº”è¯¥ç”¨æŒ‡é’ˆæŒ‡é’ˆåŒ…è£…
+			ç°åœ¨çš„è¿™ç§ä½¿ç”¨æ–¹å¼åœ¨lruè¿‡å°ï¼ŒåŒæ—¶æœåŠ¡ä¸€æ¬¡è¯·æ±‚çš„tileè¿‡å¤šæ—¶å¯èƒ½é€ æˆé‡æŒ‡é’ˆ
+		* @return 	 int å¯¹è¿”å›å€¼å¯ä»¥åšè¯¦ç»†çš„ä¿¡æ¯å®šåˆ¶ç›®å‰å€¼å¦‚ä¸‹
+			0	æˆåŠŸ
+			1	å¤±è´¥
 		*/
-		// ·µ»Ø×Ö½ÚÊı
+		// è¿”å›å­—èŠ‚æ•°
 		unsigned int getTile(const std::string& strLayer, int nLvl, int nRow, int nCol, QByteArray& arTile, int& nDetail);
 		
-		/**
-		* @brief 	 setMaxOccupyMemory     ÉèÖÃ»º´æÉÏÏŞ£¬
-		* @details	 thp::WMTS::setMaxOccupyMemory
-		* @param[in] unsigned int nMemByMB
-		* @return 	 void
-		* @todo 	µ¥Î»MB
-				1£©µ¥¶ÀÍ¼²ãÉèÖÃ
-				2£©Í¼²ã¼äÊ¹ÓÃÄÚ´æ¸ù¾İÊ¹ÓÃÆµÂÊÖ»ÄÜ·ÖÅä
-				3£©Ã¿¸öÍ¼²ã¶¼Ê¹ÓÃÕâ¸öÖµ×÷Îª»º´æÉÏÏŞ
-		*/
-		void setCacheMbSize(unsigned int nMemByMB);
-		int getCacheMbSize() const;
+		// è£…è½½æŒ‡å®šå›¾å±‚æŒ‡å®šç­‰çº§çš„bundle 
+		// 0-å…¨éƒ¨è£…è½½ 1-éƒ¨åˆ†è£…è½½ 2-æ²¡æœ‰bundleè¢«è£…è½½
+		// æŒ‡å®šå›¾å±‚ç‚¹çš„lruæ»¡äº†å°±ä¸å†è£…åœ¨äº† 
+		//int loadData(const std::string& strLayer, int nLvl);
 
-		// Í¼²ã×ÊÔ´µ÷¶È²ßÂÔ
-		void setMemStrategy(int nMemStrategy);
-		int getMemStrategy() const;
-
-		// ×°ÔØÖ¸¶¨Í¼²ãÖ¸¶¨µÈ¼¶µÄbundle 
-		// 0-È«²¿×°ÔØ 1-²¿·Ö×°ÔØ 2-Ã»ÓĞbundle±»×°ÔØ
-		// Ö¸¶¨Í¼²ãµãµÄlruÂúÁË¾Í²»ÔÙ×°ÔÚÁË 
-		int loadData(const std::string& strLayer, int nLvl);
-
-		// »ñÈ¡CapabilitiesÂ·¾¶
+		// è·å–Capabilitiesè·¯å¾„
 		std::string getCapabilities();
 
 	private:
-		int _initByDir();
-		bool _initByConfig();
-		bool _initLayer(const char* szLayer, const char* szBdiPath);
 		void getTile_trans(const std::string& strLayer, int nLvl, int nRow, int nCol, int& nDetail, std::tr1::shared_ptr<Tile>& spRes);
 		void getTile_pri(const std::string& strLayer, int nLvl, int nRow, int nCol, int& nDetail, std::tr1::shared_ptr<Tile>& spRes);
 		bool _initLogWriter();
 
-	private:
-		// ×î´óÕ¼ÓÃÄÚ´æ µ¥Î» MB
-		int						m_unMaxOccupyMemMb;
-
-		// ·şÎñÊı¾İ²Ö¿âÄ¿Â¼
-		char					m_szPath[THP_MAX_PATH];
-
-		// Í¼²ã hash ±í
+	protected:
+		// å›¾å±‚ hash è¡¨
 		TLayerHashTableNode*	m_layers;
 
-		// Í¼²ã×ÊÔ´µ÷¶È²ßÂÔ
-		int						m_nMemStrategy;
-
-		// ÈÕÖ¾Àà
+		// æ—¥å¿—ç±»
 		CLogWriter*				m_pLogWriter;
 	};
 

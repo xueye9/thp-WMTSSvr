@@ -1,12 +1,16 @@
-#include "StdAfx.h"
+ï»¿#include "StdAfx.h"
 #include <io.h>
+#include <sstream>
 #include "WMTSRepository.h"
 #include "WMTSLayer.h"
 #include "Tile.h"
 #include "WMTSLevel.h"
 #include <iostream>
 #include <algorithm>
+#include "WMTSConfig.h"
 #include <CLogThreadMgr.h>
+#include "curl/curl.h"
+#include "json/json.h"
 
 #pragma warning(once:4996)
 
@@ -14,27 +18,22 @@ using namespace thp;
 
 WMTSRepository::WMTSRepository()
 {
-	// Ä¬ÈÏ×î´óÕ¼ÓÃ 1GB ÄÚ´æ
-	m_unMaxOccupyMemMb = THP_WMTS_DEFAULT_MEM_OCCUPY;
-	memset(m_szPath, 0, THP_MAX_PATH);
-
 	m_layers = NULL;
-
 	_initLogWriter();
 }
 
 
 bool WMTSRepository::_initLogWriter()
 {
-	// »ñÈ¡Ð´ÈÕÖ¾¶ÔÏó
+	// èŽ·å–å†™æ—¥å¿—å¯¹è±¡
 	m_pLogWriter = CLogThreadMgr::instance()->getLogWriter("WMTSRepository.log");
 
-	// Èç¹û²»´æÔÚ£¬´´½¨ÈÕÖ¾ÎÄ¼þ£¬¼ÓÔØÈÕÖ¾ÅäÖÃ
+	// å¦‚æžœä¸å­˜åœ¨ï¼Œåˆ›å»ºæ—¥å¿—æ–‡ä»¶ï¼ŒåŠ è½½æ—¥å¿—é…ç½®
 	if (m_pLogWriter == NULL)
 	{
 		CLogAppender * pLogAppender = new CLogAppender("WMTSRepository", "WMTSRepository.log", "", "DebugLog"); 
 
-		// »ñÈ¡Ð´ÈÕÖ¾¶ÔÏó
+		// èŽ·å–å†™æ—¥å¿—å¯¹è±¡
 		m_pLogWriter = CLogThreadMgr::instance()->createLogWriter(pLogAppender);
 	}
 	return true; 
@@ -47,152 +46,13 @@ WMTSRepository::~WMTSRepository()
 
 	HASH_ITER(hh, m_layers, s, tmp) 
 	{
-		std::cout << "ÊÍ·ÅÍ¼²ã[" << s->szName << "]×ÊÔ´";
+		std::cout << "é‡Šæ”¾å›¾å±‚[" << s->szName << "]èµ„æº";
 
 		HASH_DEL(m_layers, s);
 		WMTSLayer* pLayer = s->pLayer;
 		delete pLayer;
 		free(s);
 	}
-}
-
-bool WMTSRepository::setPath(const char* szPath)
-{
-	unsigned int unLen = strlen(szPath);
-	if(0 == unLen || unLen > THP_MAX_PATH)
-		return false;
-
-	memcpy(m_szPath, szPath, unLen);
-	return true;
-}
-
-bool WMTSRepository::init(int nMode)
-{
-	// °´ÎÄ¼þ½á¹¹³õÊ¼»¯
-	bool bSuccess = false;
-	int nLayerCount = 0;
-	if( 0x0001 == (nMode&0x0001) )
-		nLayerCount = _initByDir();
-
-	if(nLayerCount > 0)
-		return true;
-
-	// Í¨¹ýÅäÖÃÎÄ¼þ³õÊ¼»¯
-	//if( 0x0002 == (nMode&0x0002) )
-	//	bSuccess = _initByConfig();
-	
-	return bSuccess;
-}
-
-int WMTSRepository::_initByDir()
-{
-	// ËÑË÷bdiÎÄ¼þ
-	struct _finddata64i32_t fileInfo;
-	long handle;
-	int done;
-	std::string sFileName = m_szPath; //ÒªËÑË÷µÄÎÄ¼þÃû
-	sFileName += "*";
-	sFileName += THP_WMTS_BUNDLE_EXIST_IDXFILE_POSFIX;
-	int nLayerCount = 0;
-
-	//²éÕÒµÚÒ»¸öÎÄ¼þ£¬·µ»Ø¾ä±ú
-	handle=_findfirst64i32(sFileName.c_str(), &fileInfo);
-	if(handle==-1)
-	{
-		std::cerr << "Ä¿Â¼["<< m_szPath << "] ²»ÊÇÓÐÐ§µÄ WMTS Ä¿Â¼" << std::endl;
-		return false;
-	}
-
-	do
-	{
-		//Èç¹ûÊÇÎÄ¼þ¼Ð".",»òÕß".."£¬Ôò½øÐÐÅÐ¶ÏÏÂÒ»¸öÎÄ¼þ
-		if( (strcmp(fileInfo.name,".")==0) || (strcmp(fileInfo.name,"..") == 0))
-			continue;
-
-		// Ìø¹ýÎÄ¼þ¼Ð
-		if((fileInfo.attrib&_A_SUBDIR)==_A_SUBDIR)
-		{
-			// log
-			continue;
-		}
-		else
-		{
-			std::string sFileFullPath = m_szPath;
-			sFileFullPath += fileInfo.name;
-
-			int nLen = strlen(fileInfo.name);
-
-			//ÓÉbdiÎÄ¼þ»ñÈ¡Í¼²ãÃû
-			std::string sLayerName  = fileInfo.name;
-			sLayerName.erase(nLen-4);
-			
-			// ³õÊ¼»¯Í¼²ã
-			std::transform(sLayerName.begin(), sLayerName.end(), sLayerName.begin(), toupper);
-			if( _initLayer(sLayerName.c_str(), sFileFullPath.c_str()) )
-				++nLayerCount;
-		}
-
-	}while( 0 == (done=_findnext64i32(handle,&fileInfo)) );
-
-	_findclose(handle);
-
-	return nLayerCount;
-}
-
-bool WMTSRepository::_initLayer(const char* szLayer, const char* szBdiPath)
-{
-	size_t nLen = strlen(szLayer);
-	if(0 == nLen || nLen > THP_WMTS_MAX_LAYERLEN)
-	{
-		m_pLogWriter->warnLog("Í¼²ãÃû¹ý³¤");
-		return false;
-	}
-
-	struct TLayerHashTableNode* pLayerNode = NULL;
-	HASH_FIND_STR(m_layers, szLayer, pLayerNode);
-	if( NULL != pLayerNode)
-	{
-		m_pLogWriter->warnLog("Í¼²ãÒÑ´æÔÚ");
-		return false;
-	}
-
-	char szPath[THP_MAX_PATH];
-	memset(szPath, 0, THP_MAX_PATH);
-	sprintf(szPath, "%s%s\\", m_szPath, szLayer);
-
-	if( -1 == _access(szPath, 0) )
-		return false;
-
-	WMTSLayer* pNewLayer = new WMTSLayer;
-	if( !pNewLayer->setPath(szPath) )
-	{
-		m_pLogWriter->warnLog("Í¼²ãÉèÖÃ²ÎÊýÊ§°Ü");
-		delete pNewLayer;
-		return false;
-	}
-	
-	pNewLayer->setCacheMbSize(m_unMaxOccupyMemMb);
-	pNewLayer->setGetTileStrategy( (WMTSLayer::GetTileStrategy)m_nMemStrategy );
-
-	std::cout << "ÕýÔÚ³õÊ¼»¯Í¼²ã[" << szLayer << "]" << std::endl;
-	m_pLogWriter->warnLog("Êý¾Ý´íÎó");
-	if( 0 != pNewLayer->init(szBdiPath) )
-	{
-		std::cout << "³õÊ¼»¯Í¼²ã[" << szLayer << "]Ê§°Ü";
-		m_pLogWriter->warnLog("³õÊ¼»¯Ê§°Ü");
-		delete pNewLayer;
-		return false;
-	}
-
-	std::cout << "Í¼²ã³õÊ¼»¯³É¹¦" << std::endl;
-
-	struct TLayerHashTableNode* pNewNode = (struct TLayerHashTableNode*)malloc( sizeof(struct TLayerHashTableNode) );
-	memset(pNewNode->szName, 0, THP_WMTS_MAX_LAYERLEN);
-	memcpy(pNewNode->szName, szLayer, nLen);
-	pNewNode->pLayer = pNewLayer;
-	HASH_ADD_STR(m_layers, szName, pNewNode);
-
-	return true;
 }
 
 unsigned int thp::WMTSRepository::getTile(const std::string& strLayer, int nLvl, int nRow, int nCol, QByteArray& arTile, int& nDetail)
@@ -205,58 +65,38 @@ unsigned int thp::WMTSRepository::getTile(const std::string& strLayer, int nLvl,
 	WMTSLayer* pLayer = pLyrNode->pLayer;
 	if(NULL == pLayer)
 	{	
-		m_pLogWriter->errorLog("×ÊÔ´´íÎó");
+		m_pLogWriter->errorLog("èµ„æºé”™è¯¯");
 		return 0;
 	}
 
 	return pLayer->getTile(nLvl, nRow, nCol, arTile, nDetail);
 }
 
-void thp::WMTSRepository::setCacheMbSize(unsigned int nMemByMB)
-{
-	m_unMaxOccupyMemMb = nMemByMB;
-}
-
-int thp::WMTSRepository::getCacheMbSize() const
-{
-	return m_unMaxOccupyMemMb;
-}
-
-int thp::WMTSRepository::loadData(const std::string& strLayer, int nLvl)
-{
-	TLayerHashTableNode* pLyrNode = NULL;
-	HASH_FIND_STR(m_layers, strLayer.c_str(), pLyrNode);
-	if(NULL == pLyrNode)
-	{
-		return 2;
-	}
-
-	WMTSLayer* pLayer = pLyrNode->pLayer;
-	if(NULL == pLayer)
-	{	
-		return 2;
-	}
-
-	return pLayer->loadData(nLvl);
-}
-
-void thp::WMTSRepository::setMemStrategy(int nMemStrategy)
-{
-	m_nMemStrategy = nMemStrategy;
-}
-
-int thp::WMTSRepository::getMemStrategy() const
-{
-	return m_nMemStrategy;
-}
+//int thp::WMTSRepository::loadData(const std::string& strLayer, int nLvl)
+//{
+//	TLayerHashTableNode* pLyrNode = NULL;
+//	HASH_FIND_STR(m_layers, strLayer.c_str(), pLyrNode);
+//	if(NULL == pLyrNode)
+//	{
+//		return 2;
+//	}
+//
+//	WMTSLayer* pLayer = pLyrNode->pLayer;
+//	if(NULL == pLayer)
+//	{	
+//		return 2;
+//	}
+//
+//	return pLayer->loadData(nLvl);
+//}
 
 std::string thp::WMTSRepository::getCapabilities()
 {
-	std::string sPath(m_szPath);
+	QString qsPath = WMTSConfig::Instance()->getDataDir();
+	std::string sPath = (const char*)qsPath.toLocal8Bit();
 	sPath.append(WMTS_REQUEST_VL_CAPABILITIES);
 	sPath.append(".xml");
 
 	return sPath;
 }
-
 
