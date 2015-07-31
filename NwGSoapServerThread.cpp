@@ -3,7 +3,7 @@
 #include "ProcessClientQuestRunnable.h" 
 #include "SSoapCallbackFunc.h"
 #include "WMTSServiceStub.h"
-#include "LoadConfigData.h"
+#include "WMTSConfig.h"
 #include "WMTSRepository.h"
 #include <QHostInfo>
 #include <QNetworkInterface>
@@ -65,7 +65,7 @@ bool NwGSoapServerThread::initServerStartParam()
 	m_psoap->send_timeout =10;
 	m_psoap->recv_timeout = 10; 
 	SOAP_SOCKET mbindSocket; 
-	mbindSocket = soap_bind(m_psoap, NULL, LoadConfigData::getInstance()->getPort(), BACKLOG); 
+	mbindSocket = soap_bind(m_psoap, NULL, WMTSConfig::Instance()->getPort(), BACKLOG); 
 	if (!soap_valid_socket(mbindSocket))
 	{
 		soap_print_fault(m_psoap, stderr);
@@ -76,12 +76,12 @@ bool NwGSoapServerThread::initServerStartParam()
 
 	std::cout << "Master socket:" << mbindSocket << std::endl;
 	std::cout << "Server IP:" << sAddress << std::endl;
-	std::cout << "Server Port:" << LoadConfigData::getInstance()->getPort() << std::endl;
+	std::cout << "Server Port:" << WMTSConfig::Instance()->getPort() << std::endl;
 
 	// 其他的详细信息
 
 	//设置最大线程数
-	QThreadPool::globalInstance()->setMaxThreadCount(LoadConfigData::getInstance()->getMaxThreadCount());
+	QThreadPool::globalInstance()->setMaxThreadCount(WMTSConfig::Instance()->getMaxThreadCount());
 	return true;
 }
 
