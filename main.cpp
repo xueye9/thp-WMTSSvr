@@ -1,48 +1,37 @@
 ﻿#include "WMTSRepository.h"
 #include "NwGSoapServerThread.h"
-#include "LoadConfigData.h"
+#include "WMTSConfig.h"
 #include "WMTSRepository.h"
+#include "WMTSFactory.h"
+#include "curl/curl.h"
 #include <ctime>
 #include <iostream>
 #include <algorithm>
 
-// x64 只有这一个 
-//#pragma comment(lib, "pthreadVC2.lib")
-//#pragma comment(lib, "pthreadVCE2.lib")
-//#pragma comment(lib, "pthreadVSE2.lib")
+#pragma comment(lib, "libcurl.lib")
 
 using namespace thp;
 
-thp::WMTSRepository* g_pWMTSDataCache = new thp::WMTSRepository;
+thp::WMTSRepository* g_pWMTSDataCache = NULL;
 
 int main(int argc, char* argv[])
 {
 	// 通过命令行参数获取配置信息
 	QString sConfig( ".\\data\\wmts_conf.ini" );
-
-	LoadConfigData::getInstance()->initConfigData( sConfig );
-
-	QString qsServerDir = LoadConfigData::getInstance()->getServerDir();
+	WMTSConfig::Instance()->initConfigData( sConfig );
+	QString qsServerDir = WMTSConfig::Instance()->getDataDir();
 	std::string strServerDir = (const char*)qsServerDir.toLocal8Bit();
-	int nOneLayerMaxMem = LoadConfigData::getInstance()->getOneLayerMaxCacheMB();
-	int nMemStrategy = LoadConfigData::getInstance()->getMemStrategy();
 
-	g_pWMTSDataCache->setCacheMbSize(nOneLayerMaxMem);
-	g_pWMTSDataCache->setMemStrategy(nMemStrategy);
+	int nFst = WMTSConfig::Instance()->getFileSysType();
+
+	WMTSFactory::Instance()->setFileSys( thp::WMTSFactory::FST(nFst));
+
+	g_pWMTSDataCache = WMTSFactory::Instance()->createRepository();
+
+	if(NULL == g_pWMTSDataCache)
+		return 0;
 
 	clock_t t0 = clock();
-
-	if( !g_pWMTSDataCache->setPath( strServerDir.c_str() ) )
-	{
-		//LOG(ERROR) << "服务开启失败:服务路径错误" << std::endl;
-		std::cout << "服务开启失败:服务路径错误" << std::endl;
-		clock_t t1 = clock();
-		clock_t tSpend = (t1 - t0)/CLOCKS_PER_SEC;
-		//LOG(ERROR) << "耗时:" << tSpend << "s" << std::endl;
-		std::cout << "耗时:" << tSpend << "s" << std::endl;
-
-		return 0;
-	}
 
 	if ( !g_pWMTSDataCache->init( 0x0001 ) )
 	{
@@ -75,7 +64,7 @@ int main(int argc, char* argv[])
 
 	std::cout<< "THP WMTS 开启成功>>>" << std::endl
 		<< "服务目录:" << strServerDir << std::endl
-		<< "缓存上限:" << g_pWMTSDataCache->getCacheMbSize() << " MB" << std::endl
+		<< "缓存上限:" << WMTSConfig::Instance()->getOneLayerMaxCacheMB() << " MB" << std::endl
 		<< "耗    时:" << tSpend << "s" << std::endl;
 
 	std::cout << ">";
