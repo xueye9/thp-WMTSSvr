@@ -47,10 +47,11 @@ namespace thp
 		BundleReader(const char* szBundleFile);
 
 		// 该类不建议作为继承的父类
-		~BundleReader();
+		virtual ~BundleReader();
 	
 		// 设置文件地址 eg：.\\L09\\R0080C0180.bundle
-		bool open(const char* szFile);
+		virtual bool open(const char* szFile) = 0;
+
 		bool openNotLoadBundlx(const char* szFile);
 
 		void close();
@@ -60,14 +61,14 @@ namespace thp
 		bool loadBundlx(char* pBlx, int nSize = BUNDLX_CONTENT_SIZE);
 
 		// 读入全bundle内容
-		int ReadAll(char*& pBundle);
+		virtual int readAll(char*& pBundle) = 0;
 
 		// 读取了索引才有效
 		// 获取缓存bundle文件需要最大的缓存
 		//unsigned int getMaxCacheSizeKB();
 
 		// 获取bundle文件大小
-		unsigned int getMaxByte();
+		virtual unsigned int getMaxByte() = 0;
 
 		/**
 		* @brief 	 getTileFromFile
@@ -78,7 +79,7 @@ namespace thp
 		* @return 	 bool							存在返回true，否则返回false
 		* @todo 	不检查输入,索引必须预读好了
 		*/
-		bool getTileFromFile(int nTileInBundleIndex, unsigned char*& pByteTile, unsigned int& nSize);
+		virtual	bool getTileFromFile(int nTileInBundleIndex, unsigned char*& pByteTile, unsigned int& nSize) = 0;
 
 		/**
 		* @brief 	 nextTile
@@ -92,8 +93,7 @@ namespace thp
 		*/
 		FetchType nextTile(int& nRow, int& nCol, unsigned char*& pOut, int& nSize/*, std::ofstream* pOsInfo*/);
 
-	private:
-		bool _loadBundlx(const char* szFile);
+	protected:
 		bool _calcWorldRowCol(int nIdxPos, int& nRow, int& nCol);
 		//bool _initLogWriter();
 
