@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\pthread"
+				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;QT_DLL;QT_NO_STL;QT_EDITION=QT_EDITION_DESKTOP;QT_THREAD_SUPPORT;QT_ACCESSIBILITY_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_THP_TJ"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -353,18 +353,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\BundleFactory.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\BundleReader.cpp"
 				>
 				<FileConfiguration
@@ -401,18 +389,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\LoadConfigData.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 			</File>
@@ -487,6 +463,26 @@
 						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\data\wmts_conf.ini"
+				>
+			</File>
+			<File
+				RelativePath=".\WMTSConfig.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\WMTSFactory.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\WMTSLayer.cpp"
@@ -708,6 +704,121 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="win"
+				>
+				<File
+					RelativePath=".\win\WinBundle.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\win\WinBundleReader.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\win\WinWMTSLayer.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\win\WinWMTSLevel.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\win\WinWMTSRepository.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="hdfs"
+				>
+				<File
+					RelativePath=".\hdfs\HdfsBundle.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsBundleReader.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\hdfs\hdfsurl.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsWMTSLayer.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsWMTSLevel.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsWMTSRepository.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="..\StdAfx.h"
+						/>
+					</FileConfiguration>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -716,10 +827,6 @@
 			>
 			<File
 				RelativePath=".\Bundle.h"
-				>
-			</File>
-			<File
-				RelativePath=".\BundleFactory.h"
 				>
 			</File>
 			<File
@@ -739,10 +846,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\LoadConfigData.h"
-				>
-			</File>
-			<File
 				RelativePath=".\ParamDef.h"
 				>
 			</File>
@@ -752,6 +855,14 @@
 			</File>
 			<File
 				RelativePath=".\Tile.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WMTSConfig.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WMTSFactory.h"
 				>
 			</File>
 			<File
@@ -806,12 +917,100 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="win"
+				>
+				<File
+					RelativePath=".\win\WinBundle.h"
+					>
+				</File>
+				<File
+					RelativePath=".\win\WinBundleReader.h"
+					>
+				</File>
+				<File
+					RelativePath=".\win\WinWMTSLayer.h"
+					>
+				</File>
+				<File
+					RelativePath=".\win\WinWMTSLevel.h"
+					>
+				</File>
+				<File
+					RelativePath=".\win\WinWMTSRepository.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="hdfs"
+				>
+				<File
+					RelativePath=".\hdfs\HdfsBundle.h"
+					>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsBundleReader.h"
+					>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsUrl.h"
+					>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsWMTSLayer.h"
+					>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsWMTSLevel.h"
+					>
+				</File>
+				<File
+					RelativePath=".\hdfs\HdfsWMTSRepository.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+		</Filter>
+		<Filter
+			Name="jsoncpp"
+			>
+			<File
+				RelativePath=".\jsoncpp-src-0.5.0\src\lib_json\json_batchallocator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\jsoncpp-src-0.5.0\src\lib_json\json_internalarray.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\jsoncpp-src-0.5.0\src\lib_json\json_internalmap.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\jsoncpp-src-0.5.0\src\lib_json\json_reader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jsoncpp-src-0.5.0\src\lib_json\json_valueiterator.inl"
+				>
+			</File>
+			<File
+				RelativePath=".\jsoncpp-src-0.5.0\src\lib_json\json_writer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jsoncpp-src-0.5.0\src\lib_json\sconscript"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
