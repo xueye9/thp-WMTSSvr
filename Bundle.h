@@ -31,17 +31,17 @@ class Bundle
 {
 public:
 	Bundle(const TBundleIDex& tNoEx);
-	~Bundle();
+	virtual ~Bundle();
 
 	// 设置文件地址 eg：.\\L09\\R0080C0180.bundle
-	bool open(const char* szFile); 
+	virtual bool open(const char* szFile) = 0; 
 
 	// 清楚bundle使用的资源
 	void close();
 
 	// 整片缓存到内存
 	// 缓存自己到内存
-	int cache();
+	virtual int cache() = 0;
 	bool isCached();
 
 	// 获取最大占用内存
@@ -55,7 +55,7 @@ public:
 	* @return 	获取到非空tile返回true，否则返回false
 	* @todo 	
 	*/
-	unsigned int getTile(int nRow, int nCol, QByteArray& arTile,int &nDetail);
+	virtual unsigned int getTile(int nRow, int nCol, QByteArray& arTile,int &nDetail) = 0;
 
 	// 加热资源
 	void heating();
@@ -71,13 +71,12 @@ public:
 	void check();
 #endif
 
-private:
+protected:
 	void _getMaxByte();
 	bool _initLogWriter();
 	unsigned int _getTileFromCache(int nTileIndexInBundle, QByteArray& arTile);
 
-//public:
-private:
+protected:
 	// 起始行号 只会128的整数倍
 	int					m_nBeginRow;
 
