@@ -16,10 +16,10 @@
 #include <QByteArray>
 #include "ParamDef.h"
 #include "bdi/bdiapi.h"
-#include "BundleFactory.h"
 #include "uthash/uthash.h"
 #include <QMutex>
 #include <QReadWriteLock>
+#include "Bundle.h"
 
 #ifdef _THP_TJ
 #include <Windows.h>
@@ -51,7 +51,7 @@ namespace thp
 		~TBundleRecord();
 	};
 
-	class WMTSLayer : public BundleFactory
+	class WMTSLayer 
 	{
 	public:
 		/**< 获取tile策略 */
@@ -67,6 +67,12 @@ namespace thp
 	public:
 		WMTSLayer();
 		virtual ~WMTSLayer();
+
+		bool setPath(const char* szPath);
+
+		// 0 - success 1 - no dir
+		// bdi 文件位置
+		virtual int init(const char* szBdiPath) = 0;
 
 		// 获取响应的等级
 		WMTSLevel* getLevel(int nLvl);
@@ -125,6 +131,10 @@ namespace thp
 
 		// 日志读写器
 		CLogWriter *			m_pLogWriter;
+
+		char m_szPath[THP_MAX_PATH];
+
+		WMTSLevel* m_pLvl[THP_MAX_LEVEL];
 
 #ifdef _THP_TJ
 		// 总访问次数
