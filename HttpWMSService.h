@@ -24,9 +24,11 @@ public:
 
 	// 处理WMS的GetMap操作
 	 int dwmGetMap(struct soap * soap, char * path);
-private:
 	
 private:
+	int _dwmGetMapWindows(struct soap * soap, char * path);
+	int _dwmGetMapUnix(struct soap * soap, char * path);
+
 	///发送图片数据
 	/// @param baMapData	[in]	图片数据
 	/// @param strformat	[in]	图片格式
@@ -40,6 +42,7 @@ private:
 	/// @param strVersion	[in]	服务版本
 	 int _sendExceptionMessage(struct soap *soap, const QString  & strMessage, const QString &strCode, QString strVersion ="1.0.0");
 	 bool _initLogWriter();
+
 private:
 	//QMutex m_mx;
 	CLogWriter* m_pLogWriter;
