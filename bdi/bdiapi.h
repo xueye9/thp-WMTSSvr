@@ -1,14 +1,14 @@
-#ifndef GENAPI_H__
+ï»¿#ifndef GENAPI_H__
 #define GENAPI_H__
 #include <map>
 #include <string>
 #include "../ParamDef.h"
 
 
-// Ë÷ÒıÎÄ¼ş¹Ì¶¨´óĞ¡
-// Ë÷ÒıÎÄ¼ş¸ñÊ½
-// 16 byte bom Î´Ê¹ÓÃ 
-// Ë÷Òı 0 - 21 ¹¤22 ¼¶
+// ç´¢å¼•æ–‡ä»¶å›ºå®šå¤§å°
+// ç´¢å¼•æ–‡ä»¶æ ¼å¼
+// 16 byte bom æœªä½¿ç”¨ 
+// ç´¢å¼• 0 - 21 å·¥22 çº§
 
 // 0     idxcontents
 // 1	 idxcontents
@@ -16,54 +16,41 @@
 // ..
 
 // idx contents = calcBunldeExistBit, lv<12= 1byte,lv>=12 = 2^(2*lv-23)byte
-// [int] µÈ¼¶, [...] ´æÔÚ×´Ì¬Ë÷Òı
+// [int] ç­‰çº§, [...] å­˜åœ¨çŠ¶æ€ç´¢å¼•
 //
 // 
 #define FILE_POSTFIX ".bundlx"
 //#define FILE_NAME_LEN  17
 #define MAX_LEVLE	22
 
-//struct TNode
-//{
-//	int nSize ;				// ´óĞ¡
-//	unsigned char* pbyteIndex;	// ÄÚÈİ
-//
-//	~TNode()
-//	{
-//		delete[] pbyteIndex;
-//		pbyteIndex = NULL;
-//	}
-//};
-
-// µÈ¼¶ tileĞĞºÅ tileÁĞºÅ
+// ç­‰çº§ tileè¡Œå· tileåˆ—å·
 int calcBundleNo(int nLvl, int nRow, int nCol);
 
 
-// ±ê¼ÇµÄµ¥¸ö×Ö½Ú,±ê¼ÇÎ»ÖÃ 0 - 7
+// æ ‡è®°çš„å•ä¸ªå­—èŠ‚,æ ‡è®°ä½ç½® 0 - 7
 void tag(unsigned char* pOf, int nTagIdx);
 
-// ÅÌÊÇ·ñÓĞ±ê¼Ç
+// ç›˜æ˜¯å¦æœ‰æ ‡è®°
 bool taged(unsigned char* pOf, int nTagIdx);
 
-// ¼ÆËãµÈ¼¶Ë÷ÒıÕ¼ÓÃµÄ´óĞ¡
+// è®¡ç®—ç­‰çº§ç´¢å¼•å ç”¨çš„å¤§å°
 int calcBunldeExistStatusOccupyByte(int nLvl);
 
-//IN:ÎÄ¼şËùÔÚµÄÂ·¾¶,Èç£ºf:\example
-//IN:´æ´¢µÄÎÄ¼şÃû
+//IN:æ–‡ä»¶æ‰€åœ¨çš„è·¯å¾„,å¦‚ï¼šf:\example
+//IN:å­˜å‚¨çš„æ–‡ä»¶å
 int searchLayerFolder (std::string filePath, std::map<int,TLevelBundleExistStatus*>& pBlEstIdx);
 
-//IN:ÎÄ¼şËùÔÚµÄÂ·¾¶,Èç£ºf:\example\L03
-//²ã´Î£¬Ö»ÓĞ²ã´ÎÎª0Ê±£¬²ÅÍê³ÉÁ´±íÖĞÎÄ¼şĞÅÏ¢µÄÏÔÊ¾ºÍ´æ´¢
-//IN:´æ´¢µÄÎÄ¼şÃû
+//IN:æ–‡ä»¶æ‰€åœ¨çš„è·¯å¾„,å¦‚ï¼šf:\example\L03
+//å±‚æ¬¡ï¼Œåªæœ‰å±‚æ¬¡ä¸º0æ—¶ï¼Œæ‰å®Œæˆé“¾è¡¨ä¸­æ–‡ä»¶ä¿¡æ¯çš„æ˜¾ç¤ºå’Œå­˜å‚¨
+//IN:å­˜å‚¨çš„æ–‡ä»¶å
 int searchLevelFolder (std::string sLayerLevelPath, int nLvl, unsigned char* pBundleExistIdx);
 
-// 16 byte bom,int[µÈ¼¶±àºÅ],int[Ë÷Òı´óĞ¡],Ë÷ÒıÄÚÈİ
-// 1 ´æÔÚ,0 ²»´æÔÚ
+// 16 byte bom,int[ç­‰çº§ç¼–å·],int[ç´¢å¼•å¤§å°],ç´¢å¼•å†…å®¹
+// 1 å­˜åœ¨,0 ä¸å­˜åœ¨
 bool writeLayerBdlExistIdx(const std::map<int, TLevelBundleExistStatus*>& idxMap, const std::string& sPath);
 
 bool readLayerDbi(const std::string& sPath, std::map<int, TLevelBundleExistStatus*>& idxMap);
 
 bool isExist(unsigned char* pByteDbi, unsigned int unBundleIndex);
-
 
 #endif // genapi_h__
