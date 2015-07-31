@@ -15,5 +15,7 @@
 // 128 * 128 个
 #define BUNDLE_EDGE				128
 #define BUNDLE_MAX_TILE_NUM		16384
+// bundle文件中记录Tile占用内存字节数的字节长度
+#define BUNDLE_TILE_SIZE	4
 
 #endif // BundleParamDef_h__
