@@ -12,6 +12,7 @@
 #define THP_WMTSFACTORY_H_
 #include "ParamDef.h"
 
+
 namespace thp
 {
 	class WMTSRepository;
@@ -23,13 +24,6 @@ namespace thp
 	class WMTSFactory
 	{
 	public:
-		/**< 文件系统类型定义 */
-		enum FST
-		{
-			WIN32_FILE_SYS = 0,
-			UNIX_FILE_SYS,
-			HDFS_SYS
-		};
 
 		static WMTSFactory* Instance();
 		static void DeInstance();

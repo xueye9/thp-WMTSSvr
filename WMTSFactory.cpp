@@ -143,7 +143,7 @@ void thp::WMTSFactory::setFileSys(FST efs)
 	m_eType = efs;
 }
 
-thp::WMTSFactory::FST thp::WMTSFactory::getFileSys()
+thp::FST thp::WMTSFactory::getFileSys()
 {
 	return m_eType;
 }
