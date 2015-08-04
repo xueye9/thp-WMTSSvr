@@ -842,6 +842,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FileSystemDef.h"
+				>
+			</File>
+			<File
 				RelativePath=".\LayerLRUCache.h"
 				>
 			</File>
