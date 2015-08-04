@@ -6,81 +6,150 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "bdiapi.h"
-#include "../BundleReader.h"
+#include "win/WinBundleReader.h"
+#include "WMTSConfig.h"
+#include <QString>
+#include "WMTSFactory.h"
+#include "curl/curl.h"
+#include "hdfs/HdfsUrl.h"
+#include "json/json.h"
+#include <map>
+#include <QFile>
+#include <QByteArray>
+#include <QString>
 
 using namespace std;
+using namespace thp;
+
+#pragma comment(lib, "libcurl.lib")
+
+//生成bdi
+int createBdi();
 
 // 生成bdi
-int genBdi(std::string& sLayersDir);
+int createBdiOnWinSys(std::string& sLayersDir);
 
-// 枚举图层的图片
-// sLayer 图层文件夹
-// sOut 数据目录
-int enumTiles(const std::string& sLayer, const std::string& sOut, bool bOutTile);
-int enumLevelTile(const std::string& sLevelDir, const std::string& sOut, bool bOutTile);
-bool isLevel(const char* szLvlFolder);
-bool isBundleFile(const char* szBundle);
+// 测试网络和hdfs是否开启了webhdfs
+bool testWebhdfs(const std::string& sUrl);
+// 返回创建图层索引数
+int createBdiOnWebhdfs(std::string& sLayersUrl, const std::string& sLocalDir);
+// 返回有数据的level数
+int createBdiOnWebhdfsLayer(std::string& sLayerUrl, std::map<int,TLevelBundleExistStatus*>& pBlEstIdx);
+// 返回Bundle个数-使用bundlx扫描，索引文件和数据文件必须同事存在否则会有问题
+int createBdiOnWebhdfsLevel(std::string& sLevelUrl, int nLvl, unsigned char* pBundleExistIdx);
+
+//////////////枚举指定Bundle的Tile
+// 返回Tile总数
+int enumBundleTiles(const std::string& sBundle, const std::string& sOutDir);
 
 int main(int argc, char **argv)
 {
-	if(1 == argc)
+	if( 1 == argc )
+		std::cout << "详细使用信息请使用 -h 参数" << std::endl << std::endl;
+	
+	if(argc > 1)
 	{
-		//std::string sFilePath = "D:\\test\\ArcGisParseBoudle\\ParseAGBoundle\\Layers";
-		std::cout << "在当前目录生成 bdi 文件" << std::endl;
-		//genBdi( sFilePath );
-		genBdi( std::string(".") );
-		return 0;
-	}
-
-	std::string sCmd = argv[1];
-	if( 0 == sCmd.compare("-h") && 2 == argc)
-	{
-		std::cout << "使用: bdi.exe [OPTION]... [FILE]..." << std::endl;
-		std::cout << std::endl;
-		std::cout << "参数说明:" << std::endl;
-		std::cout << "  none         " << "在当前目录生成索引。" << std::endl;
-		std::cout << "  -b (FILE)    " << "生成索引文件, (FILE)指定WMTS图层组目录。" << std::endl;
-		std::cout << "  -e  [OPTION] (FILE) (FILE)" << std::endl;
-		std::cout << "      /t   " << "生成瓦片信息同时导出瓦片文件(*.png)。" << std::endl;
-		std::cout << "      /n   " << "生成瓦片信息但不导出瓦片文件。" << std::endl;
-		std::cout << "           " << "第一个(FILE)指定图层目录。" << std::endl;
-		std::cout << "           " << "第二个(FILE)指定信息导出目录。" << std::endl;
-		return 0;
-	}//打印帮助信息
-
-	if( 0 == sCmd.compare("-e") && 5 == argc )
-	{
-		std::string sOutPng = argv[2];
-		std::string sLayerPath = argv[3];
-		std::string sOutPath = argv[4];
-		if( 0 == sOutPng.compare("/t") )
+		if( 0 == strcmp(argv[1], "-h") )
 		{
-			std::cout << "枚举文件夹[" << sLayerPath << "]下瓦片到[" << sOutPath << "]" << std::endl;
-			enumTiles(sLayerPath, sOutPath, true);
-		}
-		else if( 0 == sOutPng.compare("/n") )
-		{
-			std::cout << "不是有效的命令" << std::endl;
-			enumTiles(sLayerPath, sOutPath, true);
+			std::cout << "使用: bdi.exe [OPTION] [FILE]..." << std::endl;
+			std::cout << std::endl;
+			std::cout << "参数说明:" << std::endl;
+			std::cout << " -b (FILE) : " << "依据配置文件(./data/wmts_conf.ini)生成索引" << std::endl
+					  << "    FILE : 输出索引文件位置(仅当bundle文件存储在hdfs上有效)" << std::endl << std::endl;
+
+			std::cout << " -e (FILE) (FILE) : 枚举指定bundle文件中的瓦片到指定目录,只对文件系统有效" << std::endl;
+			std::cout << "    (FILE) : " << "第一个参数,指定bundle文件位置" << std::endl;
+			std::cout << "    (FILE) : " << "第二个参数,指定瓦片文件输出目录" << std::endl;
+
+			getchar();
 		}
 
-		std::cout << "不是有效的命令" << endl;
-		return 0;
-	}// 枚举图片
+		// 生成bdi文件
+		if( 0 == strcmp(argv[1], "-b") )
+		{
+			createBdi();
+		}
 
-	if( 0 == sCmd.compare("-b") && argc == 3)
-	{
-		// 生成 *.bdi
-		std::string sFilePath = argv[2];
-		genBdi( sFilePath );
-		return 0;
+		// 枚举指定bundle的瓦片
+		if( 0 == strcmp(argv[1], "-e") )
+		{
+			if( argc < 4)
+			{
+				std::cout << "缺少参数"  << std::endl;
+				return 0;
+			}
+			std::string sBundle = argv[2];
+			//std::string sBundle = "./L05/R0000C0000.bundle";
+
+			std::string sOutDir = argv[3];
+			//std::string sOutDir = "./L05/png/";
+
+			enumBundleTiles(sBundle, sOutDir);
+		}
 	}
 
-	std::cout << "不是有效的命令" << endl;
+#ifdef _DEBUG
+	getchar();
+#endif
+
 	return 0;
 }
 
-int genBdi(std::string& sLayersDir)
+int createBdi()
+{
+	// 通过命令行参数获取配置信息
+	QString sConfig( ".\\data\\wmts_conf.ini" );
+	WMTSConfig::Instance()->initConfigData( sConfig );
+
+	thp::FST eFsType = (thp::FST)WMTSConfig::Instance()->getFileSysType();
+
+	int nLayers = 0;
+	switch(eFsType)
+	{
+	case WIN32_FILE_SYS:
+		{
+			//std::string sFilePath = "D:\\test\\ArcGisParseBoudle\\ParseAGBoundle\\Layers";
+			std::cout << "文件系统: Windows file system" << std::endl;
+			QString qsDataDir = WMTSConfig::Instance()->getDataDir();
+			std::string sDataDir = (const char*)qsDataDir.toLocal8Bit();
+			nLayers = createBdiOnWinSys(sDataDir);
+		}
+		break;
+
+		// 由于webhdfs上传索引文件有目录权限问题所在在本地目录生成
+	case HDFS_SYS:
+		{
+			std::cout << "文件系统: HDFS" << std::endl;
+			QString qsHdfsServer = WMTSConfig::Instance()->getHdfsServer();
+			int nHdfsPort = WMTSConfig::Instance()->getHdfsNameNodeWebPort();
+			QString qsDataDir = WMTSConfig::Instance()->getDataDir();
+
+			QString qsUrl = QString("http://%0:%1/webhdfs/v1%2").arg(qsHdfsServer).arg(nHdfsPort).arg(qsDataDir);
+
+			std::string sUrl = (const char*)qsUrl.toLocal8Bit();
+
+			std::cout << "索引输出目录: " << "." << std::endl;
+			nLayers = createBdiOnWebhdfs(sUrl, ".");
+		}
+
+		break;
+
+	case UNIX_FILE_SYS:
+		std::cout << "文件系统: Unix file system" << std::endl 
+			<< "不支持" << std::endl;
+		break;
+
+	default:
+		{
+			std::cout << "未知文件系统:请修改配置文件" << std::endl;
+		}
+		break;
+	}
+
+	return nLayers;
+}
+
+int createBdiOnWinSys(std::string& sLayersDir)
 {
 	// 保存文件信息的结构体
 	struct _finddata64i32_t fileInfo;
@@ -122,7 +191,7 @@ int genBdi(std::string& sLayersDir)
 
 			// lv - idx
 			std::map<int, TLevelBundleExistStatus*> mapBdlIdx;
-			if(-1 == searchLayerFolder(filePathSub, mapBdlIdx) )
+			if(-1 == searchWinSysLayerFolder(filePathSub, mapBdlIdx) )
 			{
 				std::cout<< "目录[" << sLayersDir <<"]不是WMTS Server 目录"<< std::endl;
 				continue;
@@ -130,7 +199,7 @@ int genBdi(std::string& sLayersDir)
 
 			// 写一个图层的索引文件
 			std::string sBdlIdxName = filePathSub + ".bdi";
-			if( writeLayerBdlExistIdx(mapBdlIdx, sBdlIdxName) )
+			if( write_bdi(mapBdlIdx, sBdlIdxName) )
 			{
 				std::cout << "成功生成图层[" << sBdlIdxName << "] 索引" << std::endl;
 			}
@@ -147,186 +216,317 @@ int genBdi(std::string& sLayersDir)
 	std::cout << "完成扫描"<< std::endl; 
 }
 
-int enumTiles(const std::string& sLayer, const std::string& sOut, bool bOutTile)
+bool testWebhdfs(const std::string& sUrl)
 {
-	// 保存文件信息的结构体
-	struct _finddata64i32_t fileInfo;
-
-	// 句柄
-	long handle;
-
-	// 查找nextfile是否成功
-	int done;
-
-	// 要搜索的文件夹
-	std::cout << "正在扫描目录:[" << sLayer << "]" << std::endl;
-
-	std::string sFileFullPath = sLayer + "\\*.*";
-
-	handle = _findfirst64i32(sFileFullPath.c_str(), &fileInfo);
-
-	if(-1 == handle)
-	{
-		std::cout<< "目录[" << sLayer <<"]不是WMTS Server 目录"<< std::endl;
-		return 0;
-	}
-
-	do
-	{
-		if( (strcmp(fileInfo.name, ".")==0) || (strcmp(fileInfo.name,"..")==0) )
-			continue;
-
-		if( (fileInfo.attrib&_A_SUBDIR) != _A_SUBDIR )
-		{
-			std::string fileNameTure = sLayer+"\\"+fileInfo.name;
-			std::cout << "文件["<< fileNameTure << "] 不是有效的 WMTS Server 文件" << std::endl;
-			continue;
-		}// 跳过文件
-
-		// 搜索子目录
-		{
-			// 等级
-			if( !isLevel(fileInfo.name) )
-				continue;
-			
-			std::string filePathSub = sLayer+"\\"+fileInfo.name;
-			std::string sLevlOutDir = sOut + "\\" + fileInfo.name;
-			std::string sMkDir = "mkdir " + sOut + "\\" + fileInfo.name;
-			system( sMkDir.c_str() );
-
-			enumLevelTile(filePathSub, sLevlOutDir, bOutTile);
-		}
-	}while(!(done=_findnext64i32(handle,&fileInfo)));
-
-	_findclose(handle);	
-
-	std::cout << "完成枚举瓦片" << std::endl; 
-}
-
-bool isLevel(const char* sLvlFolder)
-{
-	int nLen = strlen(sLvlFolder);
-	if(nLen != 3)
+	CURL* curlHandle = curl_easy_init();
+	if(NULL == curlHandle)
 		return false;
 
-	if ( 'L' != sLvlFolder[0] )
+	std::string sTotalUrl = sUrl + "?op=LISTSTATUS";
+
+	// 初始化连接参数
+	::_initCurl(curlHandle);
+
+	QByteArray arDirectoryStatus;
+
+	// 设置数据写入对象
+	CURLcode res = curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, &arDirectoryStatus);
+	if(CURLE_OK != res)
 		return false;
 
-	int nLevel = 0;
-	sscanf( (sLvlFolder+1), "%d", &nLevel);
-	if(0 > nLevel || nLevel > 21)
+	res = curl_easy_setopt(curlHandle, CURLOPT_URL, sTotalUrl.c_str() );
+	if(CURLE_OK != res)
 		return false;
 
+	res = curl_easy_perform(curlHandle);
+	if(CURLE_OK != res)
+		return false;
+
+	curl_easy_cleanup(curlHandle);
 	return true;
 }
 
-int enumLevelTile(const std::string& sLevelDir, const std::string& sOut, bool bOutTile)
+int createBdiOnWebhdfs(std::string& sLayersUrl, const std::string& sLocalDir)
 {
-	// 保存文件信息的结构体
-	struct _finddata64i32_t fileInfo;
-
-	// 句柄
-	long handle;
-
-	// 查找nextfile是否成功
-	int done;
-
-	std::string sFileFullPath = sLevelDir + "\\*.*";
-
-	// 等级含有的tile信息集合写入文件
-	std::string sLevelInfo = sOut + ".txt";
-	std::ofstream osInfo( sLevelInfo.c_str() );
-
-	handle = _findfirst64i32(sFileFullPath.c_str(), &fileInfo);
-
-	if(-1 == handle)
+	if( !testWebhdfs(sLayersUrl) )
 	{
-		return 0;
+		std::cout << "连接hdfs失败，可能原因: 1 网络问题; 2 hdfs未开启webhdfs" << std::endl;
 	}
 
-	std::string sLayerName = "";
-	int nLvl = 0;
+	int nLayerCount = 0;
+	CURL* curlHandle = curl_easy_init();
 
-	size_t nPos = sLevelDir.rfind('\\');
-	std::string sLvl = sLevelDir.substr(nPos+2);
-	sscanf(sLvl.c_str(), "%d", &nLvl);
+	QByteArray arDirectoryStatus;
 
-	size_t nPos1 = sLevelDir.rfind('\\', nPos - 1);
-	sLayerName = sLevelDir.substr(nPos1 + 1, nPos - nPos1 - 1 );
+	// 初始化连接参数
+	::_initCurl(curlHandle);
 
-	do
+	// 设置数据写入对象
+	CURLcode res = curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, &arDirectoryStatus);
+
+	// 设置请求url
+	std::string sUrl = sLayersUrl + "?op=LISTSTATUS";
+
+	res = curl_easy_setopt(curlHandle, CURLOPT_URL, sUrl.c_str() );
+
+	res = curl_easy_perform(curlHandle);
+	curl_easy_cleanup(curlHandle);
+	if( CURLE_OK != res )
 	{
-		if( (strcmp(fileInfo.name, ".")==0) || (strcmp(fileInfo.name,"..")==0) )
-			continue;
+		std::cout << "url:" << sUrl << "请求失败" << std::endl;
+		return nLayerCount;
+	}
 
-		if( (fileInfo.attrib&_A_SUBDIR) == _A_SUBDIR )
-		{
-			//std::string fileNameTure = sLevelDir + "\\"+fileInfo.name;
-			//std::cout << "文件["<< fileNameTure << "] 不是有效的 WMTS Server 文件" << std::endl;
-			continue;
-		}// 跳过文件
+	QString qs = arDirectoryStatus;
 
-		// 搜索 *.bundle 文件
+	std::string sJson = (const char*)( qs.toLocal8Bit() );
+
+	// 解析json串 
+	Json::Reader reader;  
+	Json::Value root;  
+	if ( reader.parse(sJson, root) )  // reader将Json字符串解析到root，root将包含Json里所有子元素  
+	{  
+		Json::Value vlFileStatuses = root["FileStatuses"];
+		Json::Value vlFileStatus = vlFileStatuses["FileStatus"];
+		Json::Value::UInt nFileCount = vlFileStatus.size();
+		for (Json::Value::UInt i = 0; i < nFileCount; ++i)
 		{
-			// 等级
-			if( !isBundleFile(fileInfo.name) )
+			Json::Value vlTemp = vlFileStatus[i];
+			std::string sType = vlTemp["type"].asString();
+
+			// 跳过不是目录对象
+			if( 0 != sType.compare("DIRECTORY") )
 				continue;
 
-			std::string sBundlePath= sLevelDir + "\\" + fileInfo.name;
+			std::string sDirName = vlTemp["pathSuffix"].asString();
 
-			thp::BundleReader reader;
-			reader.open( sBundlePath.c_str() );
+			std::string sLayerUrl = sLayersUrl + sDirName + "/";
+		
+			// lv - idx
+			std::map<int, TLevelBundleExistStatus*> mapBdlIdx;
+			if( createBdiOnWebhdfsLayer(sLayerUrl, mapBdlIdx) )
+				++nLayerCount;
 
-			int nRow = 0;
-			int nCol = 0;
-			unsigned char* pTile;
-			int nTileSize = 0;
-			thp::BundleReader::FetchType eType = thp::BundleReader::FetchType_Success;
-			while(thp::BundleReader::FetchType_Success == eType) 
+			// 写一个图层的索引文件
+			std::string sBdlIdxName = sLocalDir + "/" + sDirName + ".bdi";
+
+			if( write_bdi(mapBdlIdx, sBdlIdxName) )
 			{
-				eType = reader.nextTile(nRow, nCol, pTile, nTileSize);
-				if( thp::BundleReader::FetchType_Success != eType )
-					break;
+				// 上传到hdfs
+				std::cout << "成功生成图层[" << sDirName << ".bdi] 索引" << std::endl;
+			}
 
-				osInfo << sLayerName << "," << nLvl << "," << nRow << "," << nCol << std::endl;
-
-				if( bOutTile )
-				{
-					std::stringstream ss;
-					ss << sOut << "\\R" << nRow << "C" << nCol << ".png";
-					std::string sTile = ss.str();
-					FILE* fpTile = fopen( sTile.c_str(), "wb");
-					if(!fpTile)
-						continue;
-
-					fwrite(pTile, 1, nTileSize, fpTile);
-
-					fclose(fpTile);
-				}// 输出图片
-			
-				free(pTile);
-				pTile = NULL;
-				nTileSize = 0;
+			for (std::map<int, TLevelBundleExistStatus*>::iterator it = mapBdlIdx.begin(); it != mapBdlIdx.end(); ++it)
+			{
+				delete it->second;
 			}
 		}
-	}while(!(done=_findnext64i32(handle,&fileInfo)));
+	}  
 
-	_findclose(handle);	
-
-	std::cout << "完成等级 " << nLvl << " 瓦片枚举" << std::endl; 
+	return nLayerCount;
 }
 
-bool isBundleFile(const char* szBundle)
+// 返回有数据的lv 个数
+int createBdiOnWebhdfsLayer(std::string& sLayerUrl, std::map<int,TLevelBundleExistStatus*>& pBlEstIdx)
 {
-	int nLen = strlen(szBundle);
-	if(nLen != 17)
-		return false;
+	CURL* curlHandle = curl_easy_init();
 
-	const char* c = szBundle+11;
-	int nLevel = 0;
-	if( 0 != strcmp(szBundle+11, "bundle") )
-		return false;
+	QByteArray arDirectoryStatus;
 
-	return true;
+	// 初始化连接参数
+	::_initCurl(curlHandle);
+
+	// 设置数据写入对象
+	CURLcode res = curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, &arDirectoryStatus);
+
+	// 设置请求url
+	std::string sUrl = sLayerUrl + "?op=LISTSTATUS";
+
+	res = curl_easy_setopt(curlHandle, CURLOPT_URL, sUrl.c_str() );
+
+	res = curl_easy_perform(curlHandle);
+	curl_easy_cleanup(curlHandle);
+	if( CURLE_OK != res )
+	{
+		std::cout << "url:" << sUrl << "请求失败" << std::endl;
+		return 0;
+	}
+
+	QString qs = arDirectoryStatus;
+
+	std::string sJson = (const char*)( qs.toLocal8Bit() );
+
+	// 解析json串 
+	Json::Reader reader;  
+	Json::Value root;  
+	if ( reader.parse(sJson, root) )  // reader将Json字符串解析到root，root将包含Json里所有子元素  
+	{  
+		Json::Value vlFileStatuses = root["FileStatuses"];
+		Json::Value vlFileStatus = vlFileStatuses["FileStatus"];
+		Json::Value::UInt nFileCount = vlFileStatus.size();
+		for (Json::Value::UInt i = 0; i < nFileCount; ++i)
+		{
+			Json::Value vlTemp = vlFileStatus[i];
+			std::string sType = vlTemp["type"].asString();
+
+			// 跳过不是目录对象
+			if( 0 != sType.compare("DIRECTORY") )
+				continue;
+
+			std::string sName = vlTemp["pathSuffix"].asString();
+
+			if( 3 != sName.size() )
+			{
+				// log
+				continue;
+			}
+
+			if( 'L' != sName[0] )
+			{
+				// log
+				continue;
+			}
+
+			char szNum[4];
+			memset(szNum, 0, 4);
+			memcpy(szNum, sName.c_str()+1, 3 );
+			szNum[3] = '\0';
+			int nLv = 0;
+			if( -1 == sscanf(szNum, "%d", &nLv) )
+			{
+				// 
+				continue;
+			}
+
+			TLevelBundleExistStatus* pNode = new TLevelBundleExistStatus;
+			pNode->nSize = calcBunldeExistStatusOccupyByte(nLv);
+			pNode->pbyteIndex = new unsigned char[pNode->nSize];
+			memset(pNode->pbyteIndex, 0, pNode->nSize);
+
+			std::string sLevelUrl = sLayerUrl + sName + "/";
+			if( createBdiOnWebhdfsLevel(sLevelUrl, nLv, pNode->pbyteIndex) )
+			{
+				pBlEstIdx.insert( std::make_pair(nLv, pNode) );
+			}
+		}
+	}  
+
+	return (int)pBlEstIdx.size();
 }
 
+int createBdiOnWebhdfsLevel(std::string& sLevelUrl, int nLvl, unsigned char* pBundleExistIdx)
+{
+	int nBundleCount = 0;
+	CURL* curlHandle = curl_easy_init();
+
+	QByteArray arDirectoryStatus;
+
+	// 初始化连接参数
+	::_initCurl(curlHandle);
+
+	// 设置数据写入对象
+	CURLcode res = curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, &arDirectoryStatus);
+
+	// 设置请求url
+	std::string sUrl = sLevelUrl + "?op=LISTSTATUS";
+
+	res = curl_easy_setopt(curlHandle, CURLOPT_URL, sUrl.c_str() );
+
+	res = curl_easy_perform(curlHandle);
+	curl_easy_cleanup(curlHandle);
+	if( CURLE_OK != res )
+	{
+		std::cout << "url:" << sUrl << "请求失败" << std::endl;
+		return nBundleCount;
+	}
+
+	// 解析json串 
+	QString qs = arDirectoryStatus;
+	std::string sJson = (const char*)( qs.toLocal8Bit() );
+
+	Json::Reader reader;  
+	Json::Value root;
+	// reader将Json字符串解析到root，root将包含Json里所有子元素 
+	if ( reader.parse(sJson, root) )   
+	{  
+		Json::Value vlFileStatuses = root["FileStatuses"];
+		Json::Value vlFileStatus = vlFileStatuses["FileStatus"];
+		Json::Value::UInt nFileCount = vlFileStatus.size();
+
+		for (Json::Value::UInt i = 0; i < nFileCount; ++i)
+		{
+			Json::Value vlTemp = vlFileStatus[i];
+			std::string sType = vlTemp["type"].asString();
+
+			// 跳过不是文件对象
+			if( 0 != sType.compare("FILE") )
+				continue;
+
+			std::string sName = vlTemp["pathSuffix"].asString();
+
+			// 跳过不是索引文件的文件
+			if ( std::string::npos == sName.find(FILE_POSTFIX) )
+				continue;
+
+			size_t pos0 = sName.find('R');
+			size_t pos1 = sName.find('C');
+			size_t pos2 = sName.find('.');
+
+			std::string sNum = sName.substr(pos0+1, pos1 - pos0 - 1);
+			unsigned int nRow = 0;
+			if( -1 == sscanf(sNum.c_str(), "%x", &nRow) )
+				continue;
+
+			unsigned int nCol = 0;
+			sNum = sName.substr(pos1+1, pos2 - pos1 -1);
+			if( -1 == sscanf(sNum.c_str(), "%x", &nCol) )
+				continue;
+
+			// 计算bundle编号
+			unsigned int nBundleIndex = calcBundleNo(nLvl, nRow, nCol);
+
+			// 得到字节的偏移
+			unsigned int nByteOffset = nBundleIndex >> 3;  // <==> nBundleIndex / 3
+			unsigned char* pOf = pBundleExistIdx + nByteOffset;
+
+			// 标记位置 0-7
+			unsigned int nTagIdx = nBundleIndex - (nByteOffset << 3);
+			tag(pOf, nTagIdx);
+			++nBundleCount;
+		}
+	}
+
+	return nBundleCount;
+}
+
+int enumBundleTiles(const std::string& sBundle, const std::string& sOutDir)
+{
+	int nTileCount = 0;
+	thp::WinBundleReader reader;
+	reader.open( sBundle.c_str() );
+
+	int nRow = 0;
+	int nCol = 0;
+	unsigned char* pTile;
+	int nTileSize = 0;
+	thp::BundleReader::FetchType eType = thp::BundleReader::FetchType_Success;
+	while(thp::BundleReader::FetchType_Success == eType) 
+	{
+		eType = reader.nextTile(nRow, nCol, pTile, nTileSize);
+		if( thp::BundleReader::FetchType_Success != eType )
+			break;
+
+		QString sFile = QString("%0R%1C%2.png").arg( QString::fromLocal8Bit(sOutDir.c_str())).arg(nRow).arg(nCol);
+
+		QFile file( sFile );
+		file.open(QIODevice::WriteOnly);
+
+		QByteArray bydata;
+		bydata.append((const char*)pTile, nTileSize);
+		file.write(bydata);
+		file.close();
+		++nTileCount;
+	}
+
+	return nTileCount;
+}

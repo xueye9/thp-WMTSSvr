@@ -1,13 +1,14 @@
 #include "bdiapi.h"
 #include <io.h>
 #include <iostream>
+#include "../hdfs/HdfsUrl.h"
 
 using namespace std;
 
 // -1 不是有效的LayerFolder
 //IN:文件所在的路径,如：f:\example
 //out:
-int searchLayerFolder (string sLayerFolderPath, std::map<int,TLevelBundleExistStatus*>& pBlEstIdx) 
+int searchWinSysLayerFolder (string sLayerFolderPath, std::map<int,TLevelBundleExistStatus*>& pBlEstIdx) 
 {
 	struct _finddata64i32_t fileInfo;//保存文件信息的结构体
 	long handle;//句柄
@@ -28,9 +29,7 @@ int searchLayerFolder (string sLayerFolderPath, std::map<int,TLevelBundleExistSt
 		//如果是文件夹，则进入下一层文件夹搜索
 		if((fileInfo.attrib&_A_SUBDIR)==_A_SUBDIR)
 		{
-			// cout<<"是文件夹"<<endl;
-			// cin.get();
-			string filePathSub=sLayerFolderPath+"\\"+fileInfo.name;
+			std::string filePathSub=sLayerFolderPath+"\\"+fileInfo.name;
 
 			if( 3 != strlen(fileInfo.name) )
 			{
@@ -61,7 +60,7 @@ int searchLayerFolder (string sLayerFolderPath, std::map<int,TLevelBundleExistSt
 			memset(pNode->pbyteIndex, 0, pNode->nSize);
 
 			//递归调用
-			searchLevelFolder(filePathSub, nLv, pNode->pbyteIndex);
+			searchWinSysLevelFolder(filePathSub, nLv, pNode->pbyteIndex);
 
 			// 记录索引
 			pBlEstIdx.insert( std::make_pair(nLv, pNode) );
@@ -96,7 +95,7 @@ int calcBunldeExistStatusOccupyByte(int nLvl)
 
 // unsigned char* pBundleExistIdx 有2^(2*lv-23)个byte, lv< 12 有1个字节
 // -1 不合法的level 文件夹
-int searchLevelFolder (string sLayerLevelPath,
+int searchWinSysLevelFolder (string sLayerLevelPath,
 					   int nLvl,
 					   unsigned char* pBundleExistIdx)
 {
@@ -262,7 +261,7 @@ int calcBundleNo(int nLvl, int nRow, int nCol)
 	return nBundleIndex;
 }
 
-bool writeLayerBdlExistIdx(const std::map<int, TLevelBundleExistStatus*>& idxMap, const std::string& sPath)
+bool write_bdi(const std::map<int, TLevelBundleExistStatus*>& idxMap, const std::string& sPath)
 {
 	int i = 0;
 	std::map<int, TLevelBundleExistStatus*>::const_iterator it = idxMap.begin();
@@ -304,7 +303,7 @@ bool writeLayerBdlExistIdx(const std::map<int, TLevelBundleExistStatus*>& idxMap
 	return true;
 }
 
-bool readLayerDbi(const std::string& sPath, std::map<int, TLevelBundleExistStatus*>& idxMap)
+bool readWinSysLayerBdi(const std::string& sPath, std::map<int, TLevelBundleExistStatus*>& idxMap)
 {
 	int i = 0;
 	FILE* fpBdlIdx = fopen(sPath.c_str(), "rb");
@@ -416,4 +415,16 @@ bool taged(unsigned char* pOf, int nTagIdx)
 
 	bool bTaged = ( (cTag & (*pOf)) == cTag );
 	return bTaged;
+}
+
+int searchWebhdfsLayerFolder(std::string filePath, std::map<int,TLevelBundleExistStatus*>& pBlEstIdx)
+{
+	return 0;
+}
+
+int searchWebhdfsLevelFolder(std::string sLayerLevelPath, int nLvl, unsigned char* pBundleExistIdx)
+{
+	return 0;
+
+	
 }
