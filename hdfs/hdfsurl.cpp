@@ -1,3 +1,6 @@
+#include <QtCore>
+#include <QtGui>
+#include <QtXml>
 #include "hdfsurl.h"
 #include <QByteArray>
 
@@ -13,9 +16,9 @@ bool _initCurl(CURL* handle)
 {
 	// 设置获取详细的联系信息 当前为打开状态可以关闭 掉 
 	CURLcode res;
-	res = curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
-	if(res != CURLE_OK)
-		return false;
+	//res = curl_easy_setopt(handle, CURLOPT_VERBOSE, 1L);
+	//if(res != CURLE_OK)
+	//	return false;
 
 	// 设置没有进度显示
 	res = curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 1L);
