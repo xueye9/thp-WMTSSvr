@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 
 	int nFst = WMTSConfig::Instance()->getFileSysType();
 
-	WMTSFactory::Instance()->setFileSys( thp::WMTSFactory::FST(nFst));
+	WMTSFactory::Instance()->setFileSys( thp::FST(nFst));
 
 	g_pWMTSDataCache = WMTSFactory::Instance()->createRepository();
 
