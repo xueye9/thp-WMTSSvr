@@ -37,7 +37,7 @@ int WinWMTSLayer::init(const char* szBdiPath)
 	}
 
 	std::map<int, TLevelBundleExistStatus*> mapBdi;
-	readLayerDbi(szBdiPath, mapBdi);
+	readWinSysLayerBdi(szBdiPath, mapBdi);
 
 	int nRes = _initLevels(mapBdi);
 
