@@ -1,6 +1,8 @@
 #ifndef THP_WMTSPARAMDEF_H__
 #define THP_WMTSPARAMDEF_H__
 
+#include "FileSystemDef.h"
+
 #define THP_WMTS_MAX_LAYERLEN	30
 
 #define THP_MAX_PATH	512
