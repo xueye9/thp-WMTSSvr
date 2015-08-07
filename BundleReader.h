@@ -52,8 +52,6 @@ namespace thp
 		// 设置文件地址 eg：.\\L09\\R0080C0180.bundle
 		virtual bool open(const char* szFile) = 0;
 
-		bool openNotLoadBundlx(const char* szFile);
-
 		void close();
 
 		// 拷贝索引

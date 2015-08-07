@@ -47,35 +47,6 @@ BundleReader::~BundleReader()
 	close();
 }
 
-bool thp::BundleReader::openNotLoadBundlx(const char* szFile)
-{
-	size_t nLen = strlen(szFile);
-	if(nLen >= BUNDLE_MAX_PATH || nLen < 20)
-	{
-		sprintf(m_szLastErr, "file path is too long!the limits length is %d", BUNDLE_MAX_PATH);
-		return false;
-	}// bundle 文件名长度为 17 +'\0' 
-
-	memcpy(m_szBundleFile, szFile, nLen);
-	m_szBundleFile[nLen] = '\0';
-
-	size_t nFrom = nLen - 16;	//
-	char szNum[5];
-	memcpy(szNum, szFile+nFrom, 4/* * sizeof(char) */ );
-	szNum[4] = '\0';
-	int nRow = 0;
-	sscanf(szNum, "%x", &nRow);
-
-	memcpy(szNum, szFile + nFrom + 5, 4 /* * sizeof(char) */);
-	int nCol = 0;
-	sscanf(szNum, "%x", &nCol);
-
-	m_nBundleBeginRow = nRow;
-	m_nBundleBeginCol = nCol;
-
-	return true;
-}
-
 void thp::BundleReader::close()
 {
 	m_nIdxPos = 0;
