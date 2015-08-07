@@ -126,8 +126,7 @@ int HttpWMSService::_dwmGetMapWindows(struct soap * soap, char * path)
 #ifdef _DEBUG
 			clock_t tEnd = clock();
 			int nSpan = 1000*(tEnd - tStart)/CLOCKS_PER_SEC;
-			//RAW_DLOG(INFO, "Get Tile Spend Time:%d ms", nSpan);
-			std::cout << "Get Tile Spend Time:%d ms" << nSpan;
+			std::cout << "Get Tile Spend Time:"<< nSpan <<" ms";
 #endif
 
 #ifdef _DEBUG
@@ -138,8 +137,7 @@ int HttpWMSService::_dwmGetMapWindows(struct soap * soap, char * path)
 #ifdef _DEBUG
 			tEnd = clock();
 			nSpan = 1000*(tEnd - tStart)/CLOCKS_PER_SEC;
-			//DLOG(INFO) << "Send Tile Spend Time:" << nSpan << "ms";
-			std::cout << "Send Tile Spend Time:%d ms" << nSpan;
+			std::cout << "Send Tile Spend Time:"<< nSpan <<" ms";
 #endif
 
 			return nRes;
@@ -236,7 +234,7 @@ int HttpWMSService::_dwmGetMapUnix(struct soap * soap, char * path)
 			clock_t tEnd = clock();
 			int nSpan = 1000*(tEnd - tStart)/CLOCKS_PER_SEC;
 			//RAW_DLOG(INFO, "Get Tile Spend Time:%d ms", nSpan);
-			std::cout << "Get Tile Spend Time:%d ms" << nSpan;
+			std::cout << "Get Tile Spend Time:"<< nSpan <<" ms" << std::endl;
 #endif
 
 #ifdef _DEBUG
@@ -248,12 +246,11 @@ int HttpWMSService::_dwmGetMapUnix(struct soap * soap, char * path)
 			tEnd = clock();
 			nSpan = 1000*(tEnd - tStart)/CLOCKS_PER_SEC;
 			//DLOG(INFO) << "Send Tile Spend Time:" << nSpan << "ms";
-			std::cout << "Send Tile Spend Time:%d ms" << nSpan;
+			std::cout << "Send Tile Spend Time:"<< nSpan <<" ms" << std::endl;
 #endif
 
 			return nRes;
 		}
-
 
 		QString  strMessage = QString(GB("没有制定瓦片数据,layer:%0,lv:%1,row:%2,col:%3")).arg(stdstrLayr.c_str()).arg(nlv).arg(nRow).arg(nCol);
 		m_pLogWriter->errorLog(strMessage);
