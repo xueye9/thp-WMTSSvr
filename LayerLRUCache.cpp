@@ -57,11 +57,11 @@ thp::LayerLRUCache::~LayerLRUCache()
 	// 释放hash表资源
 	lockForWrite();
 
-	std::cout << "LRU 正在释放资源...";
+	std::cout << "LRU 正在释放资源..." << std::endl;
 
 	unlock(false);
 
-	std::cout << "LRU 完成释放资源";
+	std::cout << "LRU 完成释放资源" << std::endl;
 }
 
 
