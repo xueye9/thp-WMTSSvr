@@ -63,6 +63,12 @@ thp::WMTSLayer::WMTSLayer()
 	m_pBundleRecords = NULL;
 	m_eGTS = GTS_IO;
 
+#ifdef _THP_TJ
+	m_nCount = 0;
+	m_nENum = 0;
+	m_nMNum = 0;
+#endif// _THP_TJ
+
 	_initLogWriter();
 }
 
