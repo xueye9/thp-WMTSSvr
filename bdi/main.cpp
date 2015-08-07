@@ -24,9 +24,9 @@ using namespace thp;
 #pragma comment(lib, "libcurl.lib")
 
 //生成bdi
-int createBdi();
+int createBdi(std::string sOutDir);
 
-// 生成bdi
+// 生成bdi 返回穿件图层索引数
 int createBdiOnWinSys(std::string& sLayersDir);
 
 // 测试网络和hdfs是否开启了webhdfs
@@ -57,17 +57,25 @@ int main(int argc, char **argv)
 			std::cout << " -b (FILE) : " << "依据配置文件(./data/wmts_conf.ini)生成索引" << std::endl
 					  << "    FILE : 输出索引文件位置(仅当bundle文件存储在hdfs上有效)" << std::endl << std::endl;
 
-			std::cout << " -e (FILE) (FILE) : 枚举指定bundle文件中的瓦片到指定目录,只对文件系统有效" << std::endl;
+			std::cout << " -e (FILE) (FILE) : 枚举指定bundle文件中的瓦片到指定目录,只对本地文件系统有效" << std::endl;
 			std::cout << "    (FILE) : " << "第一个参数,指定bundle文件位置" << std::endl;
 			std::cout << "    (FILE) : " << "第二个参数,指定瓦片文件输出目录" << std::endl;
 
+#ifdef _DEBUG
 			getchar();
+#endif
+
+			return 0;
 		}
 
 		// 生成bdi文件
 		if( 0 == strcmp(argv[1], "-b") )
 		{
-			createBdi();
+			std::string sOutDir(".");
+			if(argc >= 3)
+				sOutDir = argv[2];
+
+			return createBdi(sOutDir);
 		}
 
 		// 枚举指定bundle的瓦片
@@ -79,23 +87,19 @@ int main(int argc, char **argv)
 				return 0;
 			}
 			std::string sBundle = argv[2];
-			//std::string sBundle = "./L05/R0000C0000.bundle";
+			//std::string sBundle = "E:\\WMTS\\nwws\\L17\\Rd400C1a000.bundle";
 
 			std::string sOutDir = argv[3];
 			//std::string sOutDir = "./L05/png/";
 
-			enumBundleTiles(sBundle, sOutDir);
+			return enumBundleTiles(sBundle, sOutDir);
 		}
 	}
-
-#ifdef _DEBUG
-	getchar();
-#endif
 
 	return 0;
 }
 
-int createBdi()
+int createBdi(std::string sOutDir)
 {
 	// 通过命令行参数获取配置信息
 	QString sConfig( ".\\data\\wmts_conf.ini" );
@@ -128,8 +132,9 @@ int createBdi()
 
 			std::string sUrl = (const char*)qsUrl.toLocal8Bit();
 
-			std::cout << "索引输出目录: " << "." << std::endl;
-			nLayers = createBdiOnWebhdfs(sUrl, ".");
+			std::cout << "索引输出目录: " << sOutDir << std::endl;
+
+			nLayers = createBdiOnWebhdfs(sUrl, sOutDir);
 		}
 
 		break;
@@ -173,6 +178,7 @@ int createBdiOnWinSys(std::string& sLayersDir)
 		return 0;
 	}
 
+	int nCount = 0;
 	do
 	{
 		if( (strcmp(fileInfo.name, ".")==0) || (strcmp(fileInfo.name,"..")==0) )
@@ -193,7 +199,7 @@ int createBdiOnWinSys(std::string& sLayersDir)
 			std::map<int, TLevelBundleExistStatus*> mapBdlIdx;
 			if(-1 == searchWinSysLayerFolder(filePathSub, mapBdlIdx) )
 			{
-				std::cout<< "目录[" << sLayersDir <<"]不是WMTS Server 目录"<< std::endl;
+				std::cout<< "目录[" << filePathSub <<"]不是WMTS Server 目录"<< std::endl;
 				continue;
 			}
 
@@ -208,12 +214,15 @@ int createBdiOnWinSys(std::string& sLayersDir)
 			{
 				delete it->second;
 			}
+
+			++nCount;
 		}
 	}while(!(done=_findnext64i32(handle,&fileInfo)));
 
 	_findclose(handle);	
 
 	std::cout << "完成扫描"<< std::endl; 
+	return nCount;
 }
 
 bool testWebhdfs(const std::string& sUrl)
@@ -510,6 +519,31 @@ int enumBundleTiles(const std::string& sBundle, const std::string& sOutDir)
 	unsigned char* pTile;
 	int nTileSize = 0;
 	thp::BundleReader::FetchType eType = thp::BundleReader::FetchType_Success;
+
+	size_t nPos = sBundle.rfind('\\');
+	if(nPos == std::string::npos)
+		nPos = sBundle.rfind('/');
+
+	size_t nPos2 = sBundle.rfind('.');
+	std::string sBundleName = sBundle.substr(nPos, (nPos2 - nPos));
+
+	std::stringstream ss;
+	ss << sOutDir << sBundleName << ".txt";
+	std::string sTxt = ss.str();
+	std::ofstream of(sTxt.c_str());
+
+	// 计算其实行列号
+	//nPos = sBundleName.find('R');
+	//nPos2 = sBundleName.find('C');
+	//int nBeginRow = 0;
+	//int nBeginCol = 0;
+
+	//std::string sBeginRow = sBundleName.substr(nPos+1, nPos2 - nPos -1);
+	//std::string sBeginCol = sBundleName.substr(nPos2+1, sBundleName.size() - nPos2);
+
+	//sscanf(sBeginRow.c_str(), "%x", &nBeginRow);
+	//sscanf(sBeginCol.c_str(), "%x", &nBeginCol);
+
 	while(thp::BundleReader::FetchType_Success == eType) 
 	{
 		eType = reader.nextTile(nRow, nCol, pTile, nTileSize);
@@ -517,6 +551,10 @@ int enumBundleTiles(const std::string& sBundle, const std::string& sOutDir)
 			break;
 
 		QString sFile = QString("%0R%1C%2.png").arg( QString::fromLocal8Bit(sOutDir.c_str())).arg(nRow).arg(nCol);
+
+		of << nRow << "," << nCol << std::endl;
+
+		std::string s = sFile.toLocal8Bit();
 
 		QFile file( sFile );
 		file.open(QIODevice::WriteOnly);
@@ -528,5 +566,7 @@ int enumBundleTiles(const std::string& sBundle, const std::string& sOutDir)
 		++nTileCount;
 	}
 
+	std::cout << "输出目录:" << sOutDir << std::endl;
+	std::cout << "一共枚举:" << nTileCount << " 瓦片" << std::endl;
 	return nTileCount;
 }
