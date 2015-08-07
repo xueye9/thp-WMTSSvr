@@ -38,19 +38,27 @@ bool thp::HdfsBundleReader::open(const char* szFile)
 	if( !_loadBundlx(szBundlxFile) )
 		return false;
 
-	size_t nFrom = nLen - 16;	//
-	char szNum[5];
-	memcpy(szNum, szFile+nFrom, 4/* * sizeof(char) */ );
-	szNum[4] = '\0';
-	int nRow = 0;
-	sscanf(szNum, "%x", &nRow);
+	// 得到Bundle文件名
+	std::string sBundle(szFile);
+	size_t nPos0 = sBundle.rfind('\\');
+	if(nPos0 == std::string::npos)
+		nPos0 = sBundle.rfind('/');
 
-	memcpy(szNum, szFile + nFrom + 5, 4 /* * sizeof(char) */);
-	int nCol = 0;
-	sscanf(szNum, "%x", &nCol);
+	size_t nPos1 = sBundle.rfind('.');
+	if(nPos1 == std::string::npos)
+		return false;
 
-	m_nBundleBeginRow = nRow;
-	m_nBundleBeginCol = nCol;
+	std::string sBundleName = sBundle.substr(nPos0, (nPos1 - nPos0));
+
+	// 计算起始行列号
+	nPos0 = sBundleName.find('R');
+	nPos1 = sBundleName.find('C');
+
+	std::string sBeginRow = sBundleName.substr(nPos0+1, nPos1 - nPos0 -1);
+	std::string sBeginCol = sBundleName.substr(nPos1+1, sBundleName.size() - nPos1);
+
+	sscanf(sBeginRow.c_str(), "%x", &m_nBundleBeginRow);
+	sscanf(sBeginCol.c_str(), "%x", &m_nBundleBeginCol);
 
 	return true;
 }
