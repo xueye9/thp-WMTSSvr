@@ -113,7 +113,7 @@ int thp::LayerLRUCache::add(std::tr1::shared_ptr<Bundle> sp)
 
 #ifdef _THP_TJ
 		unsigned int nbKb = sp->getMaxKB();
-		QString qsInfo = QString( "%0,%1,%2" )/*.arg( GB("LRU") ).arg( GB(sp->getPath()) )*/.arg( nbKb );
+		QString qsInfo = QString( "%0,%1,%2" ).arg( GB("LRU") ).arg( GB(sp->getPath()) ).arg( nbKb );
 		m_pLogWriter->debugLog(qsInfo);
 #endif
 
@@ -135,7 +135,6 @@ int thp::LayerLRUCache::add(std::tr1::shared_ptr<Bundle> sp)
 		if( m_unUsedKBCount < sp->getMaxKB() )
 		{
 			m_pLogWriter->errorLog("LRU´íÎó");
-			//LOG(ERROR) << "LRU´íÎó";
 			break;
 		}
 
@@ -144,7 +143,7 @@ int thp::LayerLRUCache::add(std::tr1::shared_ptr<Bundle> sp)
 		m_listHotColdResources.pop_back();
 	}
 
-	m_listHotColdResources.push_front(sp);
+	m_listHotColdResources.insert_n(m_listHotColdResources.size()/2, sp);
 	m_unUsedKBCount += sp->getMaxKB();
 
 #ifdef _THP_TJ
