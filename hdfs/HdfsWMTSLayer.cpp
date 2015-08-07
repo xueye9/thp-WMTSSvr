@@ -101,7 +101,7 @@ unsigned int HdfsWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& ar
 		// bundle 不存在
 		if( !pLv->exist(tbnNo) )
 		{
-			QString qsInfo = QString( GB("%0,%1,%2,%3,没有对应bundle") ).arg( GB("info") ).arg(nLvl).arg(nRow).arg(nCol);
+			QString qsInfo = QString( GB("%0,%1,%2,%3,没有对应bundle") ).arg( GB("webhdfs") ).arg(nLvl).arg(nRow).arg(nCol);
 			m_pLogWriter->debugLog(qsInfo);
 			return 0;
 		}
@@ -120,14 +120,12 @@ unsigned int HdfsWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& ar
 
 				HASH_ADD(hh, m_pBundleRecords, tID, sizeof(TBundleID), pRecord);
 
-#ifdef _THP_TJ
 				// 记录访问内存过bundle的文件大小
 				spBundle = pRecord->loadBundle(pLv);
 				unsigned int nbKb = spBundle->getMaxKB();
 
 				QString qsInfo = QString( GB("%0,%1,%2") ).arg( GB("FILE") ).arg( spBundle->getPath() ).arg( nbKb );
 				m_pLogWriter->debugLog(qsInfo);
-#endif// _THP_TJ
 
 			}
 		}
@@ -150,6 +148,13 @@ unsigned int HdfsWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& ar
 		{
 			spBundle->cache();
 		}
+#if _THP_TJ
+		else
+		{
+			// 内存访问次数加1
+			InterlockedIncrement(&m_nMNum);
+		}
+#endif
 
 		m_pLyrLRU->add(spBundle);
 	}
@@ -160,7 +165,17 @@ unsigned int HdfsWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& ar
 		return 0;
 	}
 
-	return spBundle->getTile(nRow, nCol, arTile, nDetail);
+	unsigned int nByte = spBundle->getTile(nRow, nCol, arTile, nDetail);
+
+#ifdef _THP_TJ
+	if(nByte > 0)
+	{
+		// 有效访问次数加1
+		InterlockedIncrement(&m_nENum);
+	}
+#endif// 
+
+	return nByte;
 }
 
 bool thp::HdfsWMTSLayer::readBdiWithWebhdfs(const std::string& sUrl, std::map<int, TLevelBundleExistStatus*>& idxMap)
@@ -188,6 +203,8 @@ bool thp::HdfsWMTSLayer::readBdiWithWebhdfs(const std::string& sUrl, std::map<in
 	{
 		QString sLog = QString("%0,%1,%2").arg("webhdfs").arg("op=LISTSTATUS").arg(GB("请求失败"));
 		m_pLogWriter->debugLog(sLog);
+		curl_easy_cleanup(curlHandle);
+		return false;
 	}
 
 	curl_easy_cleanup(curlHandle);
@@ -291,6 +308,9 @@ void HdfsWMTSLayer::_clear()
 			delete m_pLvl[i];
 			m_pLvl[i] = NULL;
 		}
+
+		QString qsInfo = QString( GB("%0,%1,%2,%3") ).arg( GB("统计信息") ).arg(m_nCount).arg(m_nENum).arg(m_nMNum);
+		m_pLogWriter->debugLog(qsInfo);
 	}
 	catch (...)
 	{
