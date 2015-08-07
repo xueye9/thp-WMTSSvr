@@ -273,7 +273,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;../include;.."
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;QT_EDITION=QT_EDITION_DESKTOP"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -291,8 +292,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="QtCore4.lib QtXml4.lib QtGui4.lib QtSql4.lib Qt3Support4.lib QtNetWork4.lib qtmain.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(OutDir)"
+				AdditionalLibraryDirectories="&quot;$(GISCOREDIR)\Bin\Release64&quot;;&quot;$(QTDIR)\lib64&quot;;&quot;$(OutDir)&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
