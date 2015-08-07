@@ -248,7 +248,7 @@
 		<Configuration
 			Name="Release|x64"
 			OutputDirectory=".\..\..\..\Bin\$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory=".\..\..\..\Output\Release\$(ProjectName)"
+			IntermediateDirectory=".\..\..\..\Output\$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -273,7 +273,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\pthread"
+				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;QT_NO_DEBUG;QT_DLL;QT_NO_STL;QT_EDITION=QT_EDITION_DESKTOP;QT_THREAD_SUPPORT;QT_ACCESSIBILITY_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_THP_TJ"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -719,6 +719,15 @@
 							PrecompiledHeaderThrough="../StdAfx.h"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\win\WinBundleReader.cpp"
@@ -729,6 +738,15 @@
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -753,6 +771,15 @@
 							PrecompiledHeaderThrough="../StdAfx.h"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -770,6 +797,15 @@
 							PrecompiledHeaderThrough="../StdAfx.h"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="..\StdAfx.h"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\hdfs\HdfsBundleReader.cpp"
@@ -783,6 +819,15 @@
 							PrecompiledHeaderThrough="../StdAfx.h"
 						/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="..\StdAfx.h"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\hdfs\hdfsurl.cpp"
@@ -793,6 +838,15 @@
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -815,6 +869,15 @@
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="2"
 							PrecompiledHeaderThrough="..\StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
 						/>
 					</FileConfiguration>
 				</File>
