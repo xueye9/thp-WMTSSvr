@@ -46,7 +46,7 @@ WMTSRepository::~WMTSRepository()
 
 	HASH_ITER(hh, m_layers, s, tmp) 
 	{
-		std::cout << "释放图层[" << s->szName << "]资源";
+		std::cout << "释放图层[" << s->szName << "]资源" << std::endl;
 
 		HASH_DEL(m_layers, s);
 		WMTSLayer* pLayer = s->pLayer;
