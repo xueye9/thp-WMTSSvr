@@ -21,10 +21,22 @@ int main(int argc, char* argv[])
 	WMTSConfig::Instance()->initConfigData( sConfig );
 	QString qsServerDir = WMTSConfig::Instance()->getDataDir();
 	std::string strServerDir = (const char*)qsServerDir.toLocal8Bit();
-
+	std::string sFileSystem("");
 	int nFst = WMTSConfig::Instance()->getFileSysType();
 
 	WMTSFactory::Instance()->setFileSys( thp::FST(nFst));
+	if(thp::FST::HDFS_SYS == thp::FST(nFst))
+	{
+		sFileSystem = "HDFS";
+	}
+	else if( thp::FST::WIN32_FILE_SYS == thp::FST(nFst) )
+	{
+		sFileSystem = "WINDOWS LOCAL FILE SYSTEM";
+	}
+	else
+	{
+		sFileSystem = "UNIX LOCAL FILE SYSTEM";
+	}
 
 	g_pWMTSDataCache = WMTSFactory::Instance()->createRepository();
 
@@ -63,7 +75,8 @@ int main(int argc, char* argv[])
 	clock_t tSpend = (t1 - t0)/CLOCKS_PER_SEC;
 
 	std::cout<< "THP WMTS 开启成功>>>" << std::endl
-		<< "服务目录:" << strServerDir << std::endl
+		<< "文件系统:" << sFileSystem << std::endl
+		<< "数据目录:" << strServerDir << std::endl
 		<< "缓存上限:" << WMTSConfig::Instance()->getOneLayerMaxCacheMB() << " MB" << std::endl
 		<< "耗    时:" << tSpend << "s" << std::endl;
 
@@ -81,6 +94,11 @@ int main(int argc, char* argv[])
 		if(0 == sInput.compare("stop") )
 		{
 			td.stopGSoapServer();
+
+			delete g_pWMTSDataCache;
+			g_pWMTSDataCache = NULL;
+
+			Sleep(5000);
 			
 			break;
 		}
