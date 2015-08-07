@@ -103,6 +103,9 @@ int HdfsWMTSRepository::_initByDirWithWebhdfs()
 	{
 		QString sLog = QString("%0,%1,%2").arg("webhdfs").arg("op=LISTSTATUS").arg(GB("ÇëÇóÊ§°Ü"));
 		m_pLogWriter->debugLog(sLog);
+		curl_easy_cleanup(curlHandle);
+
+		return nLayerCount;
 	}
 
 	QString qs = arDirectoryStatus;
@@ -216,4 +219,3 @@ bool HdfsWMTSRepository::_initLayerWithWebhdfs(const char* szLayer, const char* 
 
 	return true;
 }
-
