@@ -7,9 +7,9 @@
 #include <ctime>
 #include <iostream>
 #include <algorithm>
-#include "vld.h"
+//#include "vld.h"
 
-#pragma comment(lib,"vld.lib")
+//#pragma comment(lib,"vld.lib")
 
 #pragma comment(lib, "libcurl.lib")
 
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 	int nFst = WMTSConfig::Instance()->getFileSysType();
 
 	WMTSFactory::Instance()->setFileSys( thp::FST(nFst));
-	if(thp::FST::HDFS_SYS == thp::FST(nFst))
+	if(FST::HDFS_SYS == (FST)nFst)
 	{
 		sFileSystem = "HDFS";
 	}
