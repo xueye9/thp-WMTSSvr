@@ -17,6 +17,12 @@ thp::HdfsBundle::~HdfsBundle()
 
 bool thp::HdfsBundle::open(const char* szFile)
 {
+	QMutexLocker locker(&m_mutex);
+
+	// 已经打开过了
+	if(m_unMaxByteSize > 0)
+		return true;
+
 	size_t nLen = strlen(szFile);
 	if(nLen >= BUNDLE_MAX_PATH || nLen < 20)
 	{
@@ -37,6 +43,12 @@ bool thp::HdfsBundle::open(const char* szFile)
 
 int thp::HdfsBundle::cache()
 {
+	QMutexLocker locker(&m_mutex);
+
+	// 已经缓冲过了再缓冲了 没有这行代码会造成内存溢出
+	if(m_bCached)
+		return m_unMaxByteSize;
+
 	int nSize = 0;
 	thp::HdfsBundleReader reader;
 
