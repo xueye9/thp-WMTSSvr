@@ -27,6 +27,12 @@ public:
 
 	iterator insert_n(size_type _pos, const T& _Val)
 	{
+		if(0 == _pos)
+		{
+			push_front(_Val);
+			return begin();
+		}
+
 		if(_pos >= _Mysize)
 			return end();
 
