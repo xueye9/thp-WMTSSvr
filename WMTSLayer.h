@@ -70,6 +70,8 @@ namespace thp
 
 		bool setPath(const char* szPath);
 
+		virtual void showStatus();
+
 		// 0 - success 1 - no dir
 		// bdi ÎÄ¼şÎ»ÖÃ
 		virtual int init(const char* szBdiPath) = 0;

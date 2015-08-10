@@ -119,8 +119,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\pthread"
-				PreprocessorDefinitions="_DEBUG;WIN32;QT_DLL;QT_NO_STL;QT_EDITION=QT_EDITION_DESKTOP;QT_THREAD_SUPPORT;QT_ACCESSIBILITY_SUPPORT;_CRT_SECURE_NO_DEPRECATE;GLOG_NO_ABBREVIATED_SEVERITIES"
+				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\include"
+				PreprocessorDefinitions="_DEBUG;WIN32;QT_DLL;QT_NO_STL;QT_EDITION=QT_EDITION_DESKTOP;QT_THREAD_SUPPORT;QT_ACCESSIBILITY_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_THP_TJ"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -344,6 +344,14 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					>
 					<Tool
@@ -364,6 +372,14 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					>
 					<Tool
@@ -377,6 +393,14 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -496,6 +520,14 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					>
 					<Tool
@@ -532,7 +564,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
+						UsePrecompiledHeader="2"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -720,6 +752,15 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release|x64"
 						>
 						<Tool
@@ -738,6 +779,15 @@
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -772,6 +822,15 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release|x64"
 						>
 						<Tool
@@ -798,6 +857,15 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release|x64"
 						>
 						<Tool
@@ -812,6 +880,15 @@
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -846,6 +923,15 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Release|x64"
 						>
 						<Tool
@@ -869,6 +955,15 @@
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="2"
 							PrecompiledHeaderThrough="..\StdAfx.h"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="2"
+							PrecompiledHeaderThrough="../StdAfx.h"
 						/>
 					</FileConfiguration>
 					<FileConfiguration

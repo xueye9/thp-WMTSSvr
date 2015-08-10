@@ -72,6 +72,36 @@ thp::WMTSLayer::WMTSLayer()
 	_initLogWriter();
 }
 
+thp::WMTSLayer::~WMTSLayer()
+{
+	delete m_pLyrLRU;
+	m_pLyrLRU = NULL;
+
+	int nCount = HASH_COUNT(m_pBundleRecords);
+
+	std::cout << "delete hash..." << std::endl;
+	std::cout << "bundle count:" << nCount << std::endl;
+
+	TBundleRecord* p = NULL, *pTemp = NULL;
+	HASH_ITER(hh, m_pBundleRecords, p, pTemp) 
+	{
+		HASH_DEL(m_pBundleRecords, p);
+
+		// 释放bundle资源
+		delete p;
+	}
+	std::cout << "hash deleted" << std::endl;
+
+	std::cout << "delete level..." << std::endl;
+	for (int i = 0; i < THP_MAX_LEVEL; ++i)
+	{
+		WMTSLevel* pLv = m_pLvl[i];
+		delete pLv;
+		pLv = NULL;
+	}
+	std::cout << "level deleted" << std::endl;
+}
+
 bool WMTSLayer::_initLogWriter()
 {
 	// 获取写日志对象
@@ -88,19 +118,7 @@ bool WMTSLayer::_initLogWriter()
 	return true; 
 }
 
-thp::WMTSLayer::~WMTSLayer()
-{
-	delete m_pLyrLRU;
 
-	TBundleRecord* p = NULL, *pTemp = NULL;
-	HASH_ITER(hh, m_pBundleRecords, p, pTemp) 
-	{
-		HASH_DEL(m_pBundleRecords, p);
-
-		// 释放bundle资源
-		delete p;
-	}
-}
 
 void thp::WMTSLayer::setCacheMbSize(unsigned int nMemByMB)
 {
@@ -174,12 +192,39 @@ thp::WMTSLayer::MemStrategy thp::WMTSLayer::getMemStrategy() const
 
 bool thp::WMTSLayer::setPath(const char* szPath)
 {
-	unsigned int unLen = strlen(szPath);
+	unsigned int unLen = (unsigned int)strlen(szPath);
 	if(0 == unLen || unLen > THP_MAX_PATH)
 		return false;
 
 	memcpy(m_szPath, szPath, unLen);
 
 	return true;
+}
+
+void thp::WMTSLayer::showStatus()
+{
+	TBundleRecord* p = NULL, *pTemp = NULL;
+
+	std::cout << "-----------hash in memory---------" << std::endl;
+	HASH_ITER(hh, m_pBundleRecords, p, pTemp) 
+	{
+		if( !p->wpBundle.expired() )
+		{
+			std::tr1::shared_ptr<Bundle> spBundle = p->wpBundle.lock();
+
+			if( spBundle->isCached() )
+			{
+				std::cout << spBundle->getPath() << std::endl;
+			}
+		}
+	}
+	std::cout << "-----------hash END-------------------" << std::endl;
+
+	std::cout << "-----------LRU-------------------" << std::endl;
+
+	m_pLyrLRU->showStatus();
+
+	std::cout << "-----------LRU END-------------------" << std::endl;
+
 }
 
