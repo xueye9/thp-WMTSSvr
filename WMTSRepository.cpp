@@ -101,6 +101,38 @@ std::string thp::WMTSRepository::getCapabilities()
 
 void thp::WMTSRepository::showStatus()
 {
-	
+	TLayerHashTableNode* p = NULL,* pTemp = NULL;
+	HASH_ITER(hh, m_layers, p, pTemp) 
+	{
+		WMTSLayer* pLayer = p->pLayer;
+
+		pLayer->showStatus();
+	}
+}
+
+int thp::WMTSRepository::getLayerCount() const
+{
+	int nLayerCount = HASH_COUNT(m_layers);
+	return nLayerCount;
+}
+
+WMTSLayer* thp::WMTSRepository::getLayer(int nIndex) const
+{
+	WMTSLayer* pLayer = NULL;
+	int i = 0;
+
+	TLayerHashTableNode* p = NULL,* pTemp = NULL;
+	HASH_ITER(hh, m_layers, p, pTemp) 
+	{
+		if(i == nIndex)
+		{
+			pLayer = p->pLayer;
+			break;
+		}
+
+		++i;
+	}
+
+	return pLayer;
 }
 

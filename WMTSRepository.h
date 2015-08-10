@@ -62,7 +62,14 @@ namespace thp
 		*/
 		virtual bool init(int nMode) = 0;
 
+		// 显示内存状态
 		virtual void showStatus();
+
+		// 获取图层总数
+		virtual int getLayerCount() const;
+
+		// 获取图层
+		virtual WMTSLayer* getLayer(int nIndex) const;
 
 		/**
 		* @brief 	 getTile	获取指定信息的瓦片
