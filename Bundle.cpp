@@ -29,6 +29,43 @@ thp::Bundle::Bundle(const TBundleIDex& tNoEx)
 	_initLogWriter();
 }
 
+thp::Bundle::~Bundle()
+{
+	close();
+}
+
+void thp::Bundle::close()
+{
+	// 防止西沟函数抛出异常
+	try
+	{
+		if(m_pBlx)
+		{
+			delete[] m_pBlx;
+			m_pBlx = NULL;
+		}
+
+		if(m_pBle)
+		{
+			delete[] m_pBle;
+			m_pBle = NULL;
+		}
+
+		m_bCached = false;
+		m_nHeatDegree = 0;
+		m_unMaxByteSize = 0;
+
+#ifdef _DEBUG
+		m_lockReadTimes = 0;
+		m_lockWriteTimes = 0;
+#endif
+	}
+	catch(...)
+	{
+
+	}
+}
+
 bool Bundle::_initLogWriter()
 {
 	// 获取写日志对象
@@ -43,11 +80,6 @@ bool Bundle::_initLogWriter()
 		m_pLogWriter = CLogThreadMgr::instance()->createLogWriter(pLogAppender);
 	}
 	return true; 
-}
-
-thp::Bundle::~Bundle()
-{
-	close();
 }
 
 unsigned int thp::Bundle::_getTileFromCache(int nTileIndexInBundle, QByteArray& arTile)
@@ -87,29 +119,6 @@ unsigned int thp::Bundle::getMaxKB()
 bool thp::Bundle::isCached()
 {
 	return m_bCached;
-}
-
-void thp::Bundle::close()
-{
-	// 防止西沟函数抛出异常
-	try
-	{
-		if(m_pBlx)
-		{
-			delete[] m_pBlx;
-			m_pBlx = NULL;
-		}
-
-		if(m_pBle)
-		{
-			delete[] m_pBle;
-			m_pBle = NULL;
-		}
-	}
-	catch(...)
-	{
-
-	}
 }
 
 #ifdef _DEBUG
@@ -160,3 +169,38 @@ const char* thp::Bundle::getPath() const
 	return m_szFilePath;
 }
 
+QString thp::Bundle::getName() const
+{
+	// 得到Bundle文件名
+	std::string sBundle(m_szFilePath);
+	size_t nPos0 = sBundle.rfind('\\');
+	if(nPos0 == std::string::npos)
+		nPos0 = sBundle.rfind('/');
+
+	size_t nPos1 = sBundle.rfind('.');
+	if(nPos1 == std::string::npos)
+	{
+		QString qsLog = QString("%0,%1%2").arg(GB("error")).arg(GB("FILE:R ")).arg(__FILE__);
+		m_pLogWriter->errorLog(qsLog);
+		return "";
+	}
+
+	std::string sBleName = sBundle.substr(nPos0+1, (nPos1 - nPos0 - 1));
+
+	// 获取等级
+	size_t nPos2 = sBundle.rfind('\\', nPos0-1);
+	if(nPos0 == std::string::npos)
+		nPos0 = sBundle.rfind('/', nPos0);
+
+	std::string sLv = sBundle.substr(nPos2+1, nPos0 - nPos2 - 1);
+	if(sLv.empty())
+	{
+		QString qsLog = QString("%0,%1%2").arg(GB("error")).arg(GB("FILE:R ")).arg(__FILE__);
+		m_pLogWriter->errorLog(qsLog);
+		return "";
+	}
+
+	QString qsName = QString("%1%2").arg( GB(sLv.c_str()) ).arg( GB(sBleName.c_str()) );
+
+	return qsName;
+}

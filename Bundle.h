@@ -1,10 +1,12 @@
 #ifndef BUNDLE_H__
 #define BUNDLE_H__
 
+#include <string>
 #include <memory>
-
+#include <QString>
 #include <QByteArray>
-
+#include <QMutex>
+#include <QString>
 #ifdef _DEBUG
 #include <Windows.h>
 #endif
@@ -67,6 +69,9 @@ public:
 
 	const char* getPath() const;
 
+	// layer + lv + bundle
+	QString getName() const;
+
 #ifdef _DEBUG
 	void check();
 #endif
@@ -95,8 +100,9 @@ protected:
 	// 最后发生错误的信息
 	char				m_szLastErr[256];
 
-	// 自身读写锁
-	//pthread_rwlock_t	m_prwMutex;
+	// cache用的互斥索
+	QMutex m_mutex;
+	
 
 	// 编号
 	TBundleIDex			m_tID;
