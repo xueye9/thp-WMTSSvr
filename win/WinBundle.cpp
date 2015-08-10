@@ -20,8 +20,40 @@ thp::WinBundle::~WinBundle()
 
 }
 
+bool thp::WinBundle::open(const char* szFile)
+{
+	QMutexLocker locker(&m_mutex);
+
+	// 已经打开过了
+	if(m_unMaxByteSize > 0)
+		return true;
+
+	size_t nLen = strlen(szFile);
+	if(nLen >= BUNDLE_MAX_PATH || nLen < 20)
+	{
+		sprintf(m_szLastErr, "file path is too long!the limits length is %d", BUNDLE_MAX_PATH);
+		return false;
+	}// bundle 文件名长度为 17 +'\0' 
+
+	memcpy(m_szFilePath, szFile, nLen);
+	m_szFilePath[nLen] = '\0';
+
+	thp::WinBundleReader reader;
+
+	reader.open(m_szFilePath);
+	m_unMaxByteSize = reader.getMaxByte();
+
+	return true;
+}
+
 int thp::WinBundle::cache()
 {
+	QMutexLocker locker(&m_mutex);
+
+	// 已经缓冲过了
+	if(m_bCached)
+		return m_unMaxByteSize;
+
 	thp::WinBundleReader reader;
 
 	reader.open(m_szFilePath);
@@ -44,26 +76,6 @@ int thp::WinBundle::cache()
 	m_bCached = true;
 
 	return nSize;
-}
-
-bool thp::WinBundle::open(const char* szFile)
-{
-	size_t nLen = strlen(szFile);
-	if(nLen >= BUNDLE_MAX_PATH || nLen < 20)
-	{
-		sprintf(m_szLastErr, "file path is too long!the limits length is %d", BUNDLE_MAX_PATH);
-		return false;
-	}// bundle 文件名长度为 17 +'\0' 
-
-	memcpy(m_szFilePath, szFile, nLen);
-	m_szFilePath[nLen] = '\0';
-
-	thp::WinBundleReader reader;
-
-	reader.open(m_szFilePath);
-	m_unMaxByteSize = reader.getMaxByte();
-
-	return true;
 }
 
 unsigned int WinBundle::getTile(int nRow, int nCol, QByteArray& arTile,int &nDetail)
