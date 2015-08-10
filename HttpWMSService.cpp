@@ -126,7 +126,7 @@ int HttpWMSService::_dwmGetMapWindows(struct soap * soap, char * path)
 #ifdef _DEBUG
 			clock_t tEnd = clock();
 			int nSpan = 1000*(tEnd - tStart)/CLOCKS_PER_SEC;
-			std::cout << "Get Tile Spend Time:"<< nSpan <<" ms";
+			std::cout << "Get Tile Spend Time:"<< nSpan <<" ms" << std::endl;
 #endif
 
 #ifdef _DEBUG
@@ -137,7 +137,7 @@ int HttpWMSService::_dwmGetMapWindows(struct soap * soap, char * path)
 #ifdef _DEBUG
 			tEnd = clock();
 			nSpan = 1000*(tEnd - tStart)/CLOCKS_PER_SEC;
-			std::cout << "Send Tile Spend Time:"<< nSpan <<" ms";
+			std::cout << "Send Tile Spend Time:"<< nSpan <<" ms" << std::endl;;
 #endif
 
 			return nRes;
