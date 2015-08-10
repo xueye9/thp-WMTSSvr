@@ -145,6 +145,9 @@ unsigned int WinWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& arT
 		return 0;
 	}
 
+	// 方式bundle文件过大缓存的时间过长
+	//unsigned int nByte = spBundle->getTile(nRow, nCol, arTile, nDetail);
+
 	// 保证有 8 个以上的bundle可以缓存
 	if( (GTS_MEM == m_eGTS) && (spBundle->getMaxKB() < (m_pLyrLRU->getCapacity() >> 3)) )
 	{
