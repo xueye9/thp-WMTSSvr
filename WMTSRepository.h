@@ -62,6 +62,8 @@ namespace thp
 		*/
 		virtual bool init(int nMode) = 0;
 
+		virtual void showStatus();
+
 		/**
 		* @brief 	 getTile	获取指定信息的瓦片
 		* @details	 thp::WMTS::getTile

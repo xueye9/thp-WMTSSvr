@@ -22,6 +22,21 @@ WMTSRepository::WMTSRepository()
 	_initLogWriter();
 }
 
+WMTSRepository::~WMTSRepository()
+{
+	struct TLayerHashTableNode* s = NULL;
+	struct TLayerHashTableNode* tmp = NULL;
+
+	HASH_ITER(hh, m_layers, s, tmp) 
+	{
+		std::cout << "释放图层[" << s->szName << "]资源" << std::endl;
+
+		HASH_DEL(m_layers, s);
+		WMTSLayer* pLayer = s->pLayer;
+		delete pLayer;
+		free(s);
+	}
+}
 
 bool WMTSRepository::_initLogWriter()
 {
@@ -37,22 +52,6 @@ bool WMTSRepository::_initLogWriter()
 		m_pLogWriter = CLogThreadMgr::instance()->createLogWriter(pLogAppender);
 	}
 	return true; 
-}
-
-WMTSRepository::~WMTSRepository()
-{
-	struct TLayerHashTableNode* s = NULL;
-	struct TLayerHashTableNode* tmp = NULL;
-
-	HASH_ITER(hh, m_layers, s, tmp) 
-	{
-		std::cout << "释放图层[" << s->szName << "]资源" << std::endl;
-
-		HASH_DEL(m_layers, s);
-		WMTSLayer* pLayer = s->pLayer;
-		delete pLayer;
-		free(s);
-	}
 }
 
 unsigned int thp::WMTSRepository::getTile(const std::string& strLayer, int nLvl, int nRow, int nCol, QByteArray& arTile, int& nDetail)
@@ -98,5 +97,10 @@ std::string thp::WMTSRepository::getCapabilities()
 	sPath.append(".xml");
 
 	return sPath;
+}
+
+void thp::WMTSRepository::showStatus()
+{
+	
 }
 
