@@ -147,6 +147,7 @@ unsigned int HdfsWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& ar
 		if( !spBundle->isCached() )
 		{
 			spBundle->cache();
+			m_pLyrLRU->add(spBundle);
 		}
 #if _THP_TJ
 		else
@@ -155,8 +156,6 @@ unsigned int HdfsWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& ar
 			InterlockedIncrement(&m_nMNum);
 		}
 #endif
-
-		m_pLyrLRU->add(spBundle);
 	}
 
 	if(spBundle->getID().unLv < 0 || spBundle->getID().unLv > 21)
