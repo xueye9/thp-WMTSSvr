@@ -22,7 +22,8 @@ thp::WinBundle::~WinBundle()
 
 bool thp::WinBundle::open(const char* szFile)
 {
-	QMutexLocker locker(&m_mutex);
+	// 因为在加入hash资源时有读写锁的保护所以不用加锁
+	// QMutexLocker locker(&m_mutex);
 
 	// 已经打开过了
 	if(m_unMaxByteSize > 0)
