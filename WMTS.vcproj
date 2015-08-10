@@ -549,6 +549,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\WMTSMaintainThread.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\WMTSRepository.cpp"
 				>
 				<FileConfiguration
@@ -1033,6 +1037,10 @@
 			</File>
 			<File
 				RelativePath=".\WMTSLevel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WMTSMaintainThread.h"
 				>
 			</File>
 			<File
