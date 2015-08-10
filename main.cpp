@@ -7,6 +7,8 @@
 #include <ctime>
 #include <iostream>
 #include <algorithm>
+#include "WMTSMaintainThread.h"
+
 //#include "vld.h"
 
 //#pragma comment(lib,"vld.lib")
@@ -87,6 +89,10 @@ int main(int argc, char* argv[])
 	
 	td.start();
 
+	// 启动服务维护线程
+	WMTSMaintainThread tdMaintain;
+	tdMaintain.start();
+
 	std::string sInput("");
 	while(1)
 	{
@@ -97,6 +103,7 @@ int main(int argc, char* argv[])
 		if(0 == sInput.compare("stop") )
 		{
 			td.stopGSoapServer();
+			tdMaintain.stop();
 
 			delete g_pWMTSDataCache;
 			g_pWMTSDataCache = NULL;
@@ -105,15 +112,20 @@ int main(int argc, char* argv[])
 			
 			break;
 		}
-		else if ( 0 == sInput.compare("memory") )
+		else if ( 0 == sInput.compare("mem") )
 		{
 			g_pWMTSDataCache->showStatus();
 		}// 显示内存使用状态
-		else if (0 == sInput.compare("release") )
+		else if (0 == sInput.compare("del") )
 		{
 			delete g_pWMTSDataCache;
 			g_pWMTSDataCache = NULL;
 		}// 释放占用内存
+		else if( 0 == sInput.compare("mt") )
+		{
+			tdMaintain.maintain();
+			std::cout << "数据维护完成" << std::endl;
+		}
 	}
 
 	// 记录服务关闭时间
