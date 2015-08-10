@@ -60,11 +60,8 @@ std::tr1::shared_ptr<Bundle> thp::WMTSLevel::getBundle(const TBundleIDex& tbno)
 	int nXR = 128 * tbno.nBundleRow;
 	int nXC = 128 * tbno.nBundleCol;
 
-	// todo : 添加适应hdfs的访问代码
-
 	sprintf(szBundleFile, "%sR%04xC%04x.bundle", m_szPath, nXR, nXC);
 
-	//std::tr1::shared_ptr<Bundle> sp(new Bundle(tbno));
 	std::tr1::shared_ptr<Bundle> sp( WMTSFactory::Instance()->createBundle(tbno) );
 	sp->open( szBundleFile );
 
