@@ -69,6 +69,9 @@ thp::WMTSLayer::WMTSLayer()
 	m_nMNum = 0;
 #endif// _THP_TJ
 
+	// 哈希表中资源超过1000万(含)时到整理时间会整理资源
+	m_nMaintainLine = 100000000;
+
 	_initLogWriter();
 }
 
@@ -203,9 +206,15 @@ bool thp::WMTSLayer::setPath(const char* szPath)
 
 void thp::WMTSLayer::showStatus()
 {
+	QMutexLocker locker(&m_pRecordsMutex);
+
 	TBundleRecord* p = NULL, *pTemp = NULL;
 
-	std::cout << "-----------hash in memory---------" << std::endl;
+	std::cout << "-----------hash status---------" << std::endl;
+	int nCount = HASH_COUNT(m_pBundleRecords);
+	std::cout << "hash count :" << nCount << std::endl;
+	std::cout << "--in memory--" << std::endl;
+	int nCountInMem = 0;
 	HASH_ITER(hh, m_pBundleRecords, p, pTemp) 
 	{
 		if( !p->wpBundle.expired() )
@@ -215,16 +224,56 @@ void thp::WMTSLayer::showStatus()
 			if( spBundle->isCached() )
 			{
 				std::cout << spBundle->getPath() << std::endl;
+				++nCountInMem;
 			}
 		}
 	}
+	std::cout << "memory count :" << nCountInMem << std::endl;
+
 	std::cout << "-----------hash END-------------------" << std::endl;
 
-	std::cout << "-----------LRU-------------------" << std::endl;
+	std::cout << "-----------LRU status-------------------" << std::endl;
 
 	m_pLyrLRU->showStatus();
 
 	std::cout << "-----------LRU END-------------------" << std::endl;
+}
 
+void thp::WMTSLayer::maintain()
+{
+	QMutexLocker locker(&m_pRecordsMutex);
+
+	std::cout << "正在维护数据..." << std::endl;
+
+	int nRecordCount = HASH_COUNT(m_pBundleRecords);
+	if(nRecordCount < m_nMaintainLine)
+		return ;
+
+	TBundleRecord* p = NULL, *pTemp = NULL;
+
+	// 记录要删除的记录
+	HASH_ITER(hh, m_pBundleRecords, p, pTemp) 
+	{
+		// 删除不再内存中的所有记录
+		if( p->wpBundle.expired() )
+		{
+			HASH_DEL(m_pBundleRecords, p);
+
+			// 释放bundle资源
+			delete p;
+		}// 已经不再内存中直接删除
+		else
+		{
+			std::tr1::shared_ptr<Bundle> spBundle = p->wpBundle.lock();
+
+			if( !spBundle->isCached() )
+			{
+				HASH_DEL(m_pBundleRecords, p);
+
+				// 释放bundle资源
+				delete p;
+			}
+		}// 清楚不在缓存记录中的 
+	}
 }
 

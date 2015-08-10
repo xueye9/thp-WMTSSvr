@@ -70,7 +70,11 @@ namespace thp
 
 		bool setPath(const char* szPath);
 
+		// 显示内存使用状态
 		virtual void showStatus();
+
+		// 维护资源状态
+		virtual void maintain();
 
 		// 0 - success 1 - no dir
 		// bdi 文件位置
@@ -148,6 +152,9 @@ namespace thp
 		// 从内存获取的次数
 		LONG			m_nMNum;
 #endif// _THP_TJ
+
+		// 图层维护值
+		int m_nMaintainLine;
 	};
 }
 
