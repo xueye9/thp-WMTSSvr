@@ -102,6 +102,17 @@ int thp::WinWMTSRepository::_initByDir()
 	return nLayerCount;
 }
 
+void thp::WinWMTSRepository::showStatus()
+{
+	TLayerHashTableNode* p = NULL,* pTemp = NULL;
+	HASH_ITER(hh, m_layers, p, pTemp) 
+	{
+		WMTSLayer* pLayer = p->pLayer;
+
+		pLayer->showStatus();
+	}
+}
+
 bool WinWMTSRepository::_initLayer(const char* szLayer, const char* szBdiPath)
 {
 	QString qsPath = WMTSConfig::Instance()->getDataDir();

@@ -151,9 +151,15 @@ unsigned int WinWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& arT
 		if( !spBundle->isCached() )
 		{
 			spBundle->cache();
+			m_pLyrLRU->add(spBundle);
 		}
-
-		m_pLyrLRU->add(spBundle);
+#if _THP_TJ
+		else
+		{
+			// 内存访问次数加1
+			InterlockedIncrement(&m_nMNum);
+		}
+#endif
 	}
 
 	if(spBundle->getID().unLv < 0 || spBundle->getID().unLv > 21)
@@ -162,7 +168,17 @@ unsigned int WinWMTSLayer::getTile(int nLvl, int nRow, int nCol, QByteArray& arT
 		return 0;
 	}
 
-	return spBundle->getTile(nRow, nCol, arTile, nDetail);
+	unsigned int nByte = spBundle->getTile(nRow, nCol, arTile, nDetail);
+
+#ifdef _THP_TJ
+	if(nByte > 0)
+	{
+		// 有效访问次数加1
+		InterlockedIncrement(&m_nENum);
+	}
+#endif// 
+
+	return nByte;
 }
 
 int thp::WinWMTSLayer::_initLevels(const std::map<int, TLevelBundleExistStatus*>& mapBdi)
@@ -236,5 +252,6 @@ void thp::WinWMTSLayer::_clear()
 
 	}
 }
+
 
 
