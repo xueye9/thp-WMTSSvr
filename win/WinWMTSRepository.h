@@ -12,8 +12,6 @@ namespace thp
 
 		virtual bool init(int nMode);
 
-		virtual void showStatus();
-
 	private:
 		int _initByDir();
 		bool _initLayer(const char* szLayer, const char* szBdiPath);
