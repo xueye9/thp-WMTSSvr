@@ -4,12 +4,12 @@
 #include <list>
 
 #include <QReadWriteLock>
-
-//#include "pthread/pthread.h"
 #include "ParamDef.h"
 #include "Bundle.h"
-#include "uthash/uthash.h"
+//#include "uthash/uthash.h"
 #include "dclist.h"
+#include <QHash>
+#include <QString>
 
 class CLogWriter;
 
@@ -19,14 +19,7 @@ class Bundle;
 class BundleFactory;
 class CircularList;
 
-struct TBundleHashTableNode
-{
-	struct thp::TBundleID key;
-	thp::Bundle* val;
-
-	UT_hash_handle hh;
-};
-
+// 使用QHash是因为QHash的添加，删除，查询时间比较平均
 class LayerLRUCache
 {
 public:
@@ -58,6 +51,8 @@ public:
 	bool isFull();
 
 	bool _initLogWriter();
+
+	void showStatus();
 private:
 
 	// 用于异常捕捉
@@ -67,26 +62,18 @@ private:
 	
 	// 必须使用互斥锁 使用读写锁会有问题
 	// 如下五个个成员变量的读写锁
-	//pthread_rwlock_t m_prwMutex;
 	QReadWriteLock m_prwMutex;
 
-
-	//pthread_mutex_t m_ptMutex;
 
 	// 单位 KB
 	unsigned int m_unMaxKBCount ;
 	unsigned int m_unUsedKBCount;
 	unsigned int m_unLruHeadBundleKBCount;
 
-	// 资源hash表
-	//TBundleHashTableNode* m_pBundles;
-
-	// 资源热度循环链表 
-	// CircularList* m_pList;
-
-	//std::map< TBundleID, sPtr > m_Map;
-
 	dclist<sPtr> m_listHotColdResources;
+
+	// val 无用
+	QHash<QString,int> m_hmapResources;
 
 	CLogWriter *					m_pLogWriter;
 #ifdef _DEBUG

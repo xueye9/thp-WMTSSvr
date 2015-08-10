@@ -107,8 +107,19 @@ int thp::LayerLRUCache::add(std::tr1::shared_ptr<Bundle> sp)
 {
 	lockForWrite();
 
+	// 检查资源已经存在
+	QString qsName = sp->getName();
+	QHash<QString,int>::iterator it = m_hmapResources.find(qsName);
+	if(it != m_hmapResources.end())
+	{
+		unlock(false);
+		return 0;
+	}
+
 	if(m_unUsedKBCount < m_unMaxKBCount)
 	{
+		// 加入资源到lru头部
+		m_hmapResources.insert(qsName, 0);
 		m_listHotColdResources.push_front(sp);
 
 #ifdef _THP_TJ
@@ -141,9 +152,14 @@ int thp::LayerLRUCache::add(std::tr1::shared_ptr<Bundle> sp)
 		m_unUsedKBCount -= sp->getMaxKB();
 	
 		m_listHotColdResources.pop_back();
+		m_hmapResources.remove(qsName);
 	}
 
+	// 加入资源
 	m_listHotColdResources.insert_n(m_listHotColdResources.size()/2, sp);
+	m_hmapResources.insert(qsName, 0);
+
+	// 维护占用值
 	m_unUsedKBCount += sp->getMaxKB();
 
 #ifdef _THP_TJ
@@ -154,6 +170,22 @@ int thp::LayerLRUCache::add(std::tr1::shared_ptr<Bundle> sp)
 
 	unlock(false);
 	return 0;
+}
+
+void thp::LayerLRUCache::showStatus()
+{
+	std::cout << "max kb:" << m_unMaxKBCount << std::endl;
+
+	std::cout << "occ kb:" << m_unUsedKBCount << std::endl;
+
+	std::cout << "list size:"<< m_listHotColdResources.size() << std::endl;
+
+	dclist<sPtr>::iterator it = m_listHotColdResources.begin();
+	for (int i=0;it != m_listHotColdResources.end();++it,++i)
+	{
+		sPtr sp = *it;
+		std::cout << i << " " << sp->getPath() << std::endl;
+	}
 }
 
 

@@ -58,7 +58,7 @@ namespace thp
 		bool copyBundlx(char*& pBlx, int nSize = BUNDLX_CONTENT_SIZE);
 		bool loadBundlx(char* pBlx, int nSize = BUNDLX_CONTENT_SIZE);
 
-		// 读入全bundle内容
+		// 读入全bundle内容 返回bundle文件的byte数
 		virtual int readAll(char*& pBundle) = 0;
 
 		// 读取了索引才有效
