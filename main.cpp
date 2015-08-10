@@ -7,6 +7,9 @@
 #include <ctime>
 #include <iostream>
 #include <algorithm>
+#include "vld.h"
+
+#pragma comment(lib,"vld.lib")
 
 #pragma comment(lib, "libcurl.lib")
 
@@ -102,6 +105,15 @@ int main(int argc, char* argv[])
 			
 			break;
 		}
+		else if ( 0 == sInput.compare("memory") )
+		{
+			g_pWMTSDataCache->showStatus();
+		}// 显示内存使用状态
+		else if (0 == sInput.compare("release") )
+		{
+			delete g_pWMTSDataCache;
+			g_pWMTSDataCache = NULL;
+		}// 释放占用内存
 	}
 
 	// 记录服务关闭时间
