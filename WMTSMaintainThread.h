@@ -25,7 +25,7 @@ public:
 
 	void stop();
 
-	void maintain();
+	void maintain(bool bForce = false);
 
 signals:
 
