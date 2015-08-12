@@ -74,7 +74,7 @@ namespace thp
 		virtual void showStatus();
 
 		// 维护资源状态
-		virtual void maintain();
+		virtual void maintain(bool bForce = false);
 
 		// 0 - success 1 - no dir
 		// bdi 文件位置
@@ -104,6 +104,8 @@ namespace thp
 
 		// 装在数据,测试使用
 		int loadData(int nLvl);
+
+		std::string getName() const;
 
 	protected:
 		// 计算指定等级的bundle编号
@@ -138,6 +140,7 @@ namespace thp
 		// 日志读写器
 		CLogWriter *			m_pLogWriter;
 
+		// 没有末尾的\\或者/
 		char m_szPath[THP_MAX_PATH];
 
 		WMTSLevel* m_pLvl[THP_MAX_LEVEL];
@@ -155,6 +158,9 @@ namespace thp
 
 		// 图层维护值
 		int m_nMaintainLine;
+
+		// 每次整理数据的时间长度 默认 200 ms
+		int m_nSpan;
 	};
 }
 

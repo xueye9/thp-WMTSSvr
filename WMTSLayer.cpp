@@ -71,6 +71,7 @@ thp::WMTSLayer::WMTSLayer()
 
 	// 哈希表中资源超过1000万(含)时到整理时间会整理资源
 	m_nMaintainLine = 100000000;
+	m_nSpan = 200;
 
 	_initLogWriter();
 }
@@ -239,11 +240,9 @@ void thp::WMTSLayer::showStatus()
 	std::cout << "-----------LRU END-------------------" << std::endl;
 }
 
-void thp::WMTSLayer::maintain()
+void thp::WMTSLayer::maintain(bool bForce)
 {
 	QMutexLocker locker(&m_pRecordsMutex);
-
-	std::cout << "正在维护数据..." << std::endl;
 
 	int nRecordCount = HASH_COUNT(m_pBundleRecords);
 	if(nRecordCount < m_nMaintainLine)
@@ -251,29 +250,96 @@ void thp::WMTSLayer::maintain()
 
 	TBundleRecord* p = NULL, *pTemp = NULL;
 
-	// 记录要删除的记录
-	HASH_ITER(hh, m_pBundleRecords, p, pTemp) 
+	std::string sLayerName = getName();
+	std::cout << "正在维护图层["<< sLayerName << "]..." << std::endl;
+
+	bool bMaintainedData = false;
+
+	if(bForce)
 	{
-		// 删除不再内存中的所有记录
-		if( p->wpBundle.expired() )
+		// 记录要删除的记录
+		HASH_ITER(hh, m_pBundleRecords, p, pTemp) 
 		{
-			HASH_DEL(m_pBundleRecords, p);
-
-			// 释放bundle资源
-			delete p;
-		}// 已经不再内存中直接删除
-		else
-		{
-			std::tr1::shared_ptr<Bundle> spBundle = p->wpBundle.lock();
-
-			if( !spBundle->isCached() )
+			// 删除不再内存中的所有记录
+			if( p->wpBundle.expired() )
 			{
 				HASH_DEL(m_pBundleRecords, p);
 
 				// 释放bundle资源
 				delete p;
-			}
-		}// 清楚不在缓存记录中的 
+				bMaintainedData = true;
+			}// 已经不再内存中直接删除
+			else
+			{
+				std::tr1::shared_ptr<Bundle> spBundle = p->wpBundle.lock();
+
+				if( !spBundle->isCached() )
+				{
+					HASH_DEL(m_pBundleRecords, p);
+
+					// 释放bundle资源
+					delete p;
+					bMaintainedData = true;
+				}
+			}// 清楚不在缓存记录中的 
+		}
 	}
+	else
+	{
+		clock_t tBegin = clock();
+		clock_t tMsBase = CLOCKS_PER_SEC / 1000;
+
+		// 记录要删除的记录
+		HASH_ITER(hh, m_pBundleRecords, p, pTemp) 
+		{
+			// 删除不再内存中的所有记录
+			if( p->wpBundle.expired() )
+			{
+				HASH_DEL(m_pBundleRecords, p);
+
+				// 释放bundle资源
+				delete p;
+				bMaintainedData = true;
+			}// 已经不再内存中直接删除
+			else
+			{
+				std::tr1::shared_ptr<Bundle> spBundle = p->wpBundle.lock();
+
+				if( !spBundle->isCached() )
+				{
+					HASH_DEL(m_pBundleRecords, p);
+
+					// 释放bundle资源
+					delete p;
+					bMaintainedData = true;
+				}
+			}// 清楚不在缓存记录中的 
+			
+			if ( (clock() - tBegin)/tMsBase > m_nSpan )
+				break;
+		}
+	}
+
+	if(bMaintainedData)
+	{
+		std::cout << "图层["<< sLayerName << "]维护完成" << std::endl;
+	}
+}
+
+std::string thp::WMTSLayer::getName() const
+{
+	std::string sPath( m_szPath );
+
+	if(sPath.empty())
+		return "";
+
+	size_t nSize = sPath.size();
+	size_t nPos0 = sPath.rfind('\\');
+	if(std::string::npos == nPos0)
+		nPos0 = sPath.rfind('/');
+
+	std::string sName = sPath.substr(nPos0+1, (nSize - nPos0));
+
+	return sName;
 }
 
