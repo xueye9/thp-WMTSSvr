@@ -260,6 +260,7 @@ int createBdiOnWebhdfs(std::string& sLayersUrl, const std::string& sLocalDir)
 	if( !testWebhdfs(sLayersUrl) )
 	{
 		std::cout << "连接hdfs失败，可能原因: 1 网络问题; 2 hdfs未开启webhdfs" << std::endl;
+		return 0;
 	}
 
 	int nLayerCount = 0;
