@@ -219,7 +219,7 @@ int thp::WinWMTSLayer::_initLevels(const std::map<int, TLevelBundleExistStatus*>
 
 int thp::WinWMTSLayer::_initLevel(char* szLvlPath , int nLvl, const TLevelBundleExistStatus* pNode)
 {
-	sprintf(szLvlPath, "%s\L%02d\\", m_szPath, nLvl);
+	sprintf(szLvlPath, "%s\\L%02d\\", m_szPath, nLvl);
 	// ≥ı ºªØ level
 	if( 0 == _access(szLvlPath, 0) )
 	{

@@ -124,7 +124,7 @@ bool WinWMTSRepository::_initLayer(const char* szLayer, const char* szBdiPath)
 
 	char szPath[THP_MAX_PATH];
 	memset(szPath, 0, THP_MAX_PATH);
-	sprintf(szPath, "%s%s\\", sPath.c_str(), szLayer);
+	sprintf(szPath, "%s%s", sPath.c_str(), szLayer);
 
 	if( -1 == _access(szPath, 0) )
 		return false;
