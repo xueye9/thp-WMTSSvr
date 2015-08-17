@@ -10,7 +10,7 @@ namespace thp
 		WinWMTSRepository();
 		~WinWMTSRepository();
 
-		virtual bool init(int nMode);
+		virtual bool init();
 
 	private:
 		int _initByDir();

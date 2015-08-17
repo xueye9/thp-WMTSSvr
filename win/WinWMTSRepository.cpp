@@ -23,20 +23,17 @@ thp::WinWMTSRepository::~WinWMTSRepository()
 
 }
 
-bool thp::WinWMTSRepository::init(int nMode)
+bool thp::WinWMTSRepository::init()
 {
 	// 按文件结构初始化
 	bool bSuccess = false;
 	int nLayerCount = 0;
 	int nFileSysType = WMTSConfig::Instance()->getFileSysType();
-	if( 0x0001 == (nMode&0x0001) )
-	{
 
-		if( 0 == nFileSysType )
-			nLayerCount = _initByDir();
-		else
-			nLayerCount = 0;
-	}
+	if( 0 == nFileSysType )
+		nLayerCount = _initByDir();
+	else
+		nLayerCount = 0;
 
 	if(nLayerCount > 0)
 		return true;
