@@ -8,12 +8,11 @@
 #include <iostream>
 #include <algorithm>
 #include "WMTSMaintainThread.h"
-
-//#include "vld.h"
-
-//#pragma comment(lib,"vld.lib")
+#include <QDir>
+#include <QApplication>
 
 #pragma comment(lib, "libcurl.lib")
+#pragma comment(lib, "lib_json.lib")
 
 using namespace thp;
 
@@ -21,8 +20,16 @@ thp::WMTSRepository* g_pWMTSDataCache = NULL;
 
 int main(int argc, char* argv[])
 {
+	QApplication app(argc, argv);
+
 	// 通过命令行参数获取配置信息
-	QString sConfig( ".\\data\\wmts_conf.ini" );
+	QString sConfig = QApplication::applicationDirPath() +  "/../../data/wmtssvr.ini";
+	sConfig = QDir(sConfig).absolutePath();
+
+	std::string sCfg = (const char*)sConfig.toLocal8Bit();
+
+	std::cout << "服务配置:" << sCfg << std::endl;
+
 	WMTSConfig::Instance()->initConfigData( sConfig );
 	QString qsServerDir = WMTSConfig::Instance()->getDataDir();
 	std::string strServerDir = (const char*)qsServerDir.toLocal8Bit();
@@ -46,17 +53,18 @@ int main(int argc, char* argv[])
 	g_pWMTSDataCache = WMTSFactory::Instance()->createRepository();
 
 	if(NULL == g_pWMTSDataCache)
+	{
+		std::cout << "数据仓库创建失败" << std::endl;
 		return 0;
+	}
 
 	clock_t t0 = clock();
 
-	if ( !g_pWMTSDataCache->init( 0x0001 ) )
+	if ( !g_pWMTSDataCache->init() )
 	{
-		//LOG(ERROR) << "服务开启失败:数据初始化失败" << std::endl;
 		std::cout << "服务开启失败:数据初始化失败" << std::endl;
 		clock_t t1 = clock();
 		clock_t tSpend = (t1 - t0)/CLOCKS_PER_SEC;
-		//LOG(ERROR) << "耗时:" << tSpend << "s" << std::endl;
 		std::cout << "耗时:" << tSpend << "s" << std::endl;
 		return 0;
 	}
@@ -138,4 +146,6 @@ int main(int argc, char* argv[])
 		tNow->tm_hour,
 		tNow->tm_min,
 		tNow->tm_sec);
+
+	return app.exit();
 } 
