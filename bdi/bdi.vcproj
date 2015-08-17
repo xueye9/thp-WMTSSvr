@@ -5,6 +5,10 @@
 	Name="bdi"
 	ProjectGUID="{07787D4F-95F1-4A49-AD75-1AB24B4B1204}"
 	RootNamespace="GenBundleFileExistIndex"
+	SccProjectName="SAK"
+	SccAuxPath="SAK"
+	SccLocalPath="SAK"
+	SccProvider="SAK"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -44,7 +48,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;../include;.."
+				AdditionalIncludeDirectories="&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;../include;..;&quot;D:\DevThirdparty\JsonCpp\jsoncpp-src-0.5.0\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_USRDLL;QT_THREAD_SUPPORT;QT_EDITION=QT_EDITION_DESKTOP;_BDI"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -396,42 +400,6 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
-		</Filter>
-		<Filter
-			Name="jsoncpp"
-			>
-			<File
-				RelativePath="..\jsoncpp-src-0.5.0\src\lib_json\json_batchallocator.h"
-				>
-			</File>
-			<File
-				RelativePath="..\jsoncpp-src-0.5.0\src\lib_json\json_internalarray.inl"
-				>
-			</File>
-			<File
-				RelativePath="..\jsoncpp-src-0.5.0\src\lib_json\json_internalmap.inl"
-				>
-			</File>
-			<File
-				RelativePath="..\jsoncpp-src-0.5.0\src\lib_json\json_reader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\jsoncpp-src-0.5.0\src\lib_json\json_value.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\jsoncpp-src-0.5.0\src\lib_json\json_valueiterator.inl"
-				>
-			</File>
-			<File
-				RelativePath="..\jsoncpp-src-0.5.0\src\lib_json\json_writer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\jsoncpp-src-0.5.0\src\lib_json\sconscript"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

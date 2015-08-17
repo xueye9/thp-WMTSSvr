@@ -60,7 +60,7 @@ namespace thp
 		* @return 	 bool 初始化成功返回true
 		* @todo 	
 		*/
-		virtual bool init(int nMode) = 0;
+		virtual bool init() = 0;
 
 		// 显示内存状态
 		virtual void showStatus();
