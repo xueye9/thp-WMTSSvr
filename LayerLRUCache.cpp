@@ -1,11 +1,10 @@
 #include "StdAfx.h"
 #include "LayerLRUCache.h"
 #include "Bundle.h"
-//#include "glog/logging.h"
-//#include "glog/raw_logging.h"
 #include <set>
 #include "dclist.h"
 #include  <CLogThreadMgr.h>
+
 #ifdef _DEBUG
 #include <ctime>
 #include <Windows.h>
@@ -18,8 +17,6 @@
 using namespace thp;
 LayerLRUCache::LayerLRUCache(unsigned int unCapacity) 
 {
-	//pthread_rwlock_init(&m_prwMutex, NULL);
-
 #ifdef _DEBUG
 	m_lockReadTimes = 0;
 	m_lockWriteTimes = 0;
@@ -31,7 +28,6 @@ LayerLRUCache::LayerLRUCache(unsigned int unCapacity)
 	m_unUsedKBCount = 0;
 	m_unLruHeadBundleKBCount = 0;
 
-	//m_pBundles = NULL;
    _initLogWriter();
 	unlock(false);
 }
