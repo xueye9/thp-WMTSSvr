@@ -23,8 +23,6 @@ BundleReader::BundleReader()
 #ifdef _DEBUG
 	m_nValdTileCount = 0;
 #endif// _DEBUG
-
-	//_initLogWriter();
 }
 
 BundleReader::BundleReader(const char* szPath)
