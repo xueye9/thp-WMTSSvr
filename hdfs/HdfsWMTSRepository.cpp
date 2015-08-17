@@ -3,14 +3,15 @@
 #include <io.h>
 #include <sstream>
 #include "../Tile.h"
-//#include "HdfsWMTSLevel.h"
 #include <iostream>
 #include <algorithm>
 #include "../WMTSConfig.h"
 #include <CLogThreadMgr.h>
 #include "../WMTSFactory.h"
 #include "../WMTSLayer.h"
-#include "json/json.h"
+
+#include <json/json.h>
+
 #include "curl/curl.h"
 #include "HdfsUrl.h"
 
@@ -26,7 +27,7 @@ HdfsWMTSRepository::~HdfsWMTSRepository()
 	curl_global_cleanup();
 }
 
-bool thp::HdfsWMTSRepository::init(int nMode)
+bool thp::HdfsWMTSRepository::init()
 {
 	// ³õÊ¼»¯curl
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -35,12 +36,7 @@ bool thp::HdfsWMTSRepository::init(int nMode)
 	bool bSuccess = false;
 	int nLayerCount = 0;
 	int nFileSysType = WMTSConfig::Instance()->getFileSysType();
-	if( 0x0001 == (nMode&0x0001) )
-	{
-		nLayerCount = _initByDirWithWebhdfs();
-	}
-	else
-		nLayerCount = 0;
+	nLayerCount = _initByDirWithWebhdfs();
 
 	if(nLayerCount > 0)
 		return true;

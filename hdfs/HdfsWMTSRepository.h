@@ -13,7 +13,7 @@ namespace thp
 		HdfsWMTSRepository();
 		~HdfsWMTSRepository();
 
-		virtual bool init(int nMode);
+		virtual bool init();
 
 	private:
 		int _initByDirWithWebhdfs();
