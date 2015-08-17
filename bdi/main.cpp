@@ -12,7 +12,7 @@
 #include "WMTSFactory.h"
 #include "curl/curl.h"
 #include "hdfs/HdfsUrl.h"
-#include "json/json.h"
+#include <json/json.h>
 #include <map>
 #include <QFile>
 #include <QByteArray>
@@ -22,6 +22,8 @@ using namespace std;
 using namespace thp;
 
 #pragma comment(lib, "libcurl.lib")
+#pragma comment(lib, "lib_json.lib")
+
 
 //Éú³Ébdi
 int createBdi(std::string sOutDir);
