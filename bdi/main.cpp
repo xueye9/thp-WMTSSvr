@@ -21,8 +21,13 @@
 using namespace std;
 using namespace thp;
 
+#ifdef _DEBUG
+#pragma comment(lib, "libcurld.lib")
+#pragma comment(lib, "lib_jsond.lib")
+#else
 #pragma comment(lib, "libcurl.lib")
 #pragma comment(lib, "lib_json.lib")
+#endif
 
 
 //Éú³Ébdi

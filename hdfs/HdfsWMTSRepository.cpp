@@ -3,16 +3,15 @@
 #include <io.h>
 #include <sstream>
 #include "../Tile.h"
+//#include "HdfsWMTSLevel.h"
 #include <iostream>
 #include <algorithm>
 #include "../WMTSConfig.h"
 #include <CLogThreadMgr.h>
 #include "../WMTSFactory.h"
 #include "../WMTSLayer.h"
-
 #include <json/json.h>
-
-#include "curl/curl.h"
+#include <curl/curl.h>
 #include "HdfsUrl.h"
 
 using namespace thp;
