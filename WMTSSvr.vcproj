@@ -100,8 +100,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory=".\..\..\..\Bin\$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory=".\..\..\..\Output\$(PlatformName)\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory=".\..\..\..\Bin\$(ConfigurationName)64"
+			IntermediateDirectory=".\..\..\..\Output\$(ConfigurationName)64\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
@@ -124,7 +124,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\include"
+				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\include;&quot;D:\DevThirdparty\JsonCpp\jsoncpp-src-0.5.0\include&quot;;&quot;D:\DevThirdparty\curl\curl-7.42.1\include&quot;"
 				PreprocessorDefinitions="_DEBUG;WIN32;QT_DLL;QT_NO_STL;QT_EDITION=QT_EDITION_DESKTOP;QT_THREAD_SUPPORT;QT_ACCESSIBILITY_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_THP_TJ"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -145,8 +145,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="QtCored4.lib QtXmld4.lib QtGuid4.lib QtSqld4.lib Qt3Supportd4.lib QtNetWorkd4.lib qtmaind.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib64&quot;;$(OutDir)"
+				AdditionalLibraryDirectories="&quot;$(QTDIR)\lib64&quot;;$(OutDir);$(GISCOREDIR)\Bin\Debug64"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="17"
@@ -252,8 +253,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory=".\..\..\..\Bin\$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory=".\..\..\..\Output\$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory=".\..\..\..\Bin\$(ConfigurationName)64"
+			IntermediateDirectory=".\..\..\..\Output\$(ConfigurationName)64\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -278,7 +279,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\include"
+				AdditionalIncludeDirectories="&quot;$(GISCOREDIR)\Include\Common&quot;;&quot;$(QTDIR)\include\QtCore&quot;;&quot;$(QTDIR)\include\QtGui&quot;;&quot;$(QTDIR)\include\QtSql&quot;;&quot;$(QTDIR)\include\QtNetwork&quot;;&quot;$(QTDIR)\include\QtXml&quot;;&quot;$(QTDIR)\include\Qt3Support&quot;;&quot;$(QTDIR)\include&quot;;&quot;$(QTDIR)\mkspecs\$(QMAKESPEC)&quot;;.\include;&quot;D:\DevThirdparty\JsonCpp\jsoncpp-src-0.5.0\include&quot;;&quot;D:\DevThirdparty\curl\curl-7.42.1\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;QT_NO_DEBUG;QT_DLL;QT_NO_STL;QT_EDITION=QT_EDITION_DESKTOP;QT_THREAD_SUPPORT;QT_ACCESSIBILITY_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_THP_TJ"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
